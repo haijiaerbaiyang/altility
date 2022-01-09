@@ -1,0 +1,13 @@
+.pypirc
+.pypirc_test
+setup.cfg
+
+Docker_pypi/
+Docker_pypitest/
+Dockerhub/
+Dockerhub_notebook/
+data/private/
+
+.ipynb_checkpoints/
+src/altility/datasets/__pycache__
+src/altility/__pycache__
