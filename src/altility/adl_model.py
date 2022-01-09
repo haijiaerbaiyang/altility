@@ -12,6 +12,7 @@ from sklearn.metrics.pairwise import laplacian_kernel
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import OrdinalEncoder
 
+
 class ADL_model:
 
     """
@@ -24,9 +25,6 @@ class ADL_model:
     
         ### Parameters
         self.name = 'undisputed'
-        
-        
-        ### Attributes
         
         
         ### Results

@@ -1,7 +1,7 @@
-Altility stands for 'actively learning utility'. It is a package that provides 
-an active deep learning model for enhancing spatio-temporal predicitions. Originally,
-we developed this to help electric utilities in the process of placing new smart 
-meters in space and collecting their data at different time. 
+Altility stands for 'actively learning utility'. Originally, we developed this to 
+help electric utilities in the process of placing new smart meters in space and 
+collecting their data at different times. However, this package can now be used
+for any type of spatio-temporal prediction task.
 
 
 ### Installation:
@@ -28,7 +28,7 @@ docker run -it -p 3333:1111 -v ~/path_to_data/data:/data aryandoustarsam/altilit
 ### Usage guide:
 At the core of altility stands the class **altility.ADL_model**. It bundles properties
 and methods of the active deep learning (ADL) model that we want to train. Bellow
-is a list of all parameters, attributes, methods and generated results.
+is a list of all parameters, methods and generated results.
 
 <table>
 
@@ -300,6 +300,8 @@ in load_forecasting.py with the following parameter and return values:
   </tr>
     
 </table>
+
+It can further be tested using Uber movement travel time data.
 
 
 
