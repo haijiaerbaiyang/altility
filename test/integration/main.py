@@ -12,21 +12,27 @@ datasets = travel_forecasting.prep_travel_forecasting_data(
 )
 
 ### Get features and labels for available data
-y = datasets[0]['y']
-x_t = datasets[0]['x_t']
-x_s = datasets[0]['x_s']
+n_points=1000
+y = datasets[0]['y'][:n_points]
+x_t = datasets[0]['x_t'][:n_points]
+x_s = datasets[0]['x_s'][:n_points]
 
 
 ### Get features and labels for candidate data from spatio-temporal test set
-y_cand = datasets[1]['y']
-x_t_cand = datasets[1]['x_t']
-x_s_cand = datasets[1]['x_s']
+y_cand = datasets[1]['y'][:n_points]
+x_t_cand = datasets[1]['x_t'][:n_points]
+x_s_cand = datasets[1]['x_s'][:n_points]
 
 
 ### Show us how they look like
 print(x_t.shape)
 print(x_s.shape)
 print(y.shape)
+
+### Show us how they look like
+print(x_t_cand.shape)
+print(x_s_cand.shape)
+print(y_cand.shape)
 
 
 ### Create a class instance
@@ -60,6 +66,8 @@ ADL_model.collect(
 ### Show us how many data points are chosen
 print(len(ADL_model.batch_index_list))
 print(len(ADL_model.inf_score_list))
+
+print(ADL_model.batch_index_list)
 
 """
 
