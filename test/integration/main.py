@@ -4,10 +4,17 @@ import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
 
+### Import and prepare travel forecasting data
+datasets = travel_forecasting.prep_travel_forecasting_data(
+    silent=False,
+    plot=True
+)
 
+
+
+"""
 ### Import and prepare load forecasting data
 datasets = load_forecasting.prep_load_forecasting_data(
-    dataset_name='profiles_400',
     silent=False,
     plot=True
 )
@@ -70,3 +77,5 @@ print(len(ADL_model.inf_score_list))
 
 # show us that we ran successfully
 print('the file test/integration/main.py is successfully executed through docker')
+
+"""
