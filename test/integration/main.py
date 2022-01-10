@@ -29,6 +29,38 @@ print(x_s.shape)
 print(y.shape)
 
 
+### Create a class instance
+ADL_model = adl_model.ADL_model('Spacetimetravelic f_nn')
+
+
+### Initialize model by creating and training it
+ADL_model.initialize(
+    y,
+    x_t=x_t,
+    x_s=x_s,
+    silent=True,
+    plot=True
+)
+
+
+### Show us if we created all models
+for model_name, model in ADL_model.models.items():
+    print(model_name)
+
+
+### Collect candidate data
+ADL_model.collect(
+    x_t_cand,
+    x_s_cand,
+    silent=True,
+    plot=False
+)
+
+
+### Show us how many data points are chosen
+print(len(ADL_model.batch_index_list))
+print(len(ADL_model.inf_score_list))
+
 """
 
 ###
@@ -64,7 +96,7 @@ print(y.shape)
 
 
 ### Create a class instance
-ADL_model = adl_model.ADL_model('Undisputed f_nn')
+ADL_model = adl_model.ADL_model('Electrific f_nn')
 
 
 ### Initialize model by creating and training it

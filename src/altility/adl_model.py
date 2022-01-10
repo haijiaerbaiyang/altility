@@ -414,7 +414,7 @@ class ADL_model:
         if self.batch_normalization:
             joining_layer = tf.keras.layers.BatchNormalization()(joining_layer)
             
-        X_joint_encoder = tf.keras.Model(inputs=input_list, outputs=joining_layer)
+        x_joint_encoder = tf.keras.Model(inputs=input_list, outputs=joining_layer)
         
         
         ### Create total prediction model ###
@@ -444,14 +444,16 @@ class ADL_model:
         )
 
         # create class instance for encoding and prediction models
-        models = {
-            'x_t_encoder': x_t_encoder, 
-            'x_s_encoder': x_s_encoder, 
-            'x_st_encoder': x_st_encoder, 
-            'x_joint_encoder': X_joint_encoder, 
-            'f_nn': f_nn
-        }
-
+        models = {}
+        if self.x_t is not None:
+            models['x_t_encoder'] = x_t_encoder
+        if self.x_s is not None:
+            models['x_s_encoder'] = x_s_encoder
+        if self.x_st is not None:
+            models['x_st_encoder'] = x_st_encoder
+        models['x_joint_encoder'] = x_joint_encoder
+        models['f_nn'] = f_nn
+        
         self.models = models
         
         # give us the summary of the total prediction model that we define
