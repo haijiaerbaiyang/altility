@@ -11,6 +11,23 @@ datasets = travel_forecasting.prep_travel_forecasting_data(
     plot=True
 )
 
+### Get features and labels for available data
+y = datasets[0]['y']
+x_t = datasets[0]['x_t']
+x_s = datasets[0]['x_s']
+
+
+### Get features and labels for candidate data from spatio-temporal test set
+y_cand = datasets[1]['y']
+x_t_cand = datasets[1]['x_t']
+x_s_cand = datasets[1]['x_s']
+
+
+### Show us how they look like
+print(x_t.shape)
+print(x_s.shape)
+print(y.shape)
+
 
 """
 

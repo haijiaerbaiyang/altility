@@ -104,12 +104,7 @@ def prep_load_forecasting_data(
     raw_data = import_building_images(raw_data)
     raw_data = import_meteo_data(raw_data)
     dataset, raw_data = create_feature_label_pairs(raw_data)
-    
-    x_t = dataset['x_t']
-    x_s = dataset['x_s']
-    print(x_t.shape)
-    print(x_s.shape)
-    
+
     dataset = encode_time_features(raw_data, dataset)
     dataset = normalize_features(raw_data, dataset)
     (
@@ -119,7 +114,6 @@ def prep_load_forecasting_data(
         cand_data_spatemp
     ) = split_avail_cand(raw_data, dataset)
     
-
     cand_data_spatial = standardize_features(
         raw_data, 
         cand_data_spatial, 
@@ -711,15 +705,6 @@ def encode_time_features(raw_data, dataset):
     # save the encoded feature categories for x_time
     timestamp_categories = enc.categories_
 
-    # create empty matrix for saving number of categories of each feature column
-    n_time_categories = np.zeros((len(enc.categories_))).astype(int)
-
-    # iterate over each category array and save number of categories
-    for index, category_array in enumerate(enc.categories_):
-
-        # save number of respective category
-        n_time_categories[index] = len(category_array)
-
     ###
     # Create one dimensional ordinal encoding in 1-min steps ###
     ###
@@ -804,12 +789,10 @@ def normalize_features(raw_data, dataset):
             )
 
         # normalize x_s1
-        if raw_data['spatial_features'] != 'image':
-
-            for channel in range(raw_data['n_channels']):
-                dataset['x_s1'][:, :, channel] = min_max_scaler.fit_transform(
-                    dataset['x_s1'][:, :, channel]
-                )
+        for channel in range(raw_data['n_channels']):
+            dataset['x_s1'][:, :, channel] = min_max_scaler.fit_transform(
+                dataset['x_s1'][:, :, channel]
+            )
 
     return dataset
   

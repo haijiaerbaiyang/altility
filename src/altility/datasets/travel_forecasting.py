@@ -1,13 +1,16 @@
 import os
 
 import pandas as pd
+import numpy as np
 
+from sklearn import preprocessing 
 
 def prep_travel_forecasting_data(
     path_to_data='data/public/travel time forecasting/',
     dataset_name='Uber movement',
     city_name='Amsterdam',
     test_split=0.7,
+    time_encoding='ORD',
     normalization=True,
     standardization=True,
     silent=True,
@@ -35,6 +38,7 @@ def prep_travel_forecasting_data(
         'path_to_json_data': path_to_json_data,
         'path_to_rawdata': path_to_rawdata,
         'test_split': test_split,
+        'time_encoding': time_encoding,
         'normalization': normalization,
         'standardization': standardization,
         'silent': silent,
@@ -68,11 +72,125 @@ def prep_travel_forecasting_data(
         travel_data
     )
     
-    x_t = dataset['x_t']
-    x_s = dataset['x_s']
-    print(x_t.shape)
-    print(x_s.shape)
+    dataset = encode_time_features(raw_data, dataset)
+    dataset = normalize_features(raw_data, dataset) 
+    avail_data, cand_data = split_avail_cand(raw_data, dataset)
     
+    
+    cand_data = standardize_features(
+        raw_data, 
+        cand_data, 
+        avail_data
+    )
+    avail_data = standardize_features(
+        raw_data, 
+        avail_data, 
+        avail_data
+    )
+    
+    datasets = [
+      avail_data,
+      cand_data
+    ]
+    
+    return datasets
+    
+def normalize_features(raw_data, dataset):
+
+    """
+    """
+
+    if raw_data['normalization']:
+
+        if not raw_data['silent']:
+        
+            # tell us what we do
+            print('Normalizing features')
+
+        # get min-max scaler from the sklearn preprocessing package
+        min_max_scaler = preprocessing.MinMaxScaler()
+
+        # normalize x_t in the case that it is not OHE
+        if raw_data['time_encoding'] != 'OHE':
+            dataset['x_t'] = min_max_scaler.fit_transform(dataset['x_t'])
+
+        # normalize x_s
+        for column in range(dataset['x_s'].shape[1]):
+            dataset['x_s'][:, column, :] = min_max_scaler.fit_transform(
+                dataset['x_s'][:, column, :]
+            )
+
+    return dataset
+
+def standardize_features(
+    raw_data, 
+    dataset, 
+    reference_data, 
+):
+
+    """ Converts the population of each feature into a standard score using mean 
+    and std deviations. For x_st, the past time steps of each meteorological 
+    condition are transformed separately. For x_s1, the histogram or average 
+    values of each channel are transformed separately.
+    """
+
+    if raw_data['standardization']:
+
+        if not raw_data['silent']:
+
+            # tell us what we do
+            print('Standardizing data')
+
+        # get StandardScaler from the sklearn preprocessing package
+        standard_scaler = preprocessing.StandardScaler()
+
+        # standardize x_t in the case that it is not OHE
+        if raw_data['time_encoding'] != 'OHE':
+
+            standard_scaler.fit(reference_data['x_t'])
+            dataset['x_t'] = standard_scaler.transform(dataset['x_t'])
+
+
+        # standardize x_s1
+        for column in range(dataset['x_s'].shape[1]):
+
+            standard_scaler.fit(reference_data['x_s'][:, column, :])
+            dataset['x_s'][:, column, :] = standard_scaler.transform(
+                dataset['x_s'][:, column, :]
+            )
+
+    return dataset
+    
+def encode_time_features(raw_data, dataset):
+
+    """ 
+    """
+
+    if not raw_data['silent']:
+
+        # tell us what we do
+        print('Encoding temporal features')
+        print('x_t before:', dataset['x_t'][0])
+
+
+    ###
+    #  If chosen so, transform encoding here ###
+    ###
+
+    if raw_data['time_encoding'] == 'OHE':
+
+        # get OHE encoder
+        enc = preprocessing.OneHotEncoder()
+
+        # fit encoder
+        enc.fit(dataset['x_t'])
+
+        # encode temporal features
+        dataset['x_t'] = enc.transform(dataset['x_t']).toarray().astype(int)
+
+    if not raw_data['silent']:
+        print('x_t after: {} ({})'.format(dataset['x_t'][0], raw_data['time_encoding']))
+
     return dataset
     
     
@@ -98,6 +216,8 @@ def create_feature_label_pairs(
     travel_data.drop(columns=['zone_id'], inplace=True)
     
     x_t = travel_data['hod'].values
+    x_t_ord_1D = x_t
+    x_t = np.expand_dims(x_t, axis=1)
     x_s = travel_data[
         [
             'zone_lat_x', 
@@ -106,6 +226,7 @@ def create_feature_label_pairs(
             'zone_long_y'
         ]
     ].values
+    x_s = np.expand_dims(x_s, axis=2)
     y = travel_data[
         [
             'mean_travel_time', 
@@ -116,16 +237,43 @@ def create_feature_label_pairs(
     ].values
     
     dataset = {
+        'x_t_ord_1D': x_t_ord_1D,
         'x_t': x_t,
         'x_s': x_s,
         'y': y,
+        'n_datapoints': len(y)
     }
     
     return dataset
     
     
+def split_avail_cand(raw_data, dataset):
+
+    """
+    """
     
-    
+    if not raw_data['silent']:
+        # tell us what we are doing
+        print('Splitting data into available and candidate sets.')
+        
+        
+    split_array = np.random.choice(
+        [0, 1], 
+        size=(dataset['n_datapoints'], ), 
+        p=[1-raw_data['test_split'], raw_data['test_split']]
+    ).astype(bool)
+        
+    avail_data = {}
+    cand_data = {}
+    for item in dataset:
+        if item != 'n_datapoints':
+            cand_data[item] = dataset[item][split_array]
+            avail_data[item] = dataset[item][np.invert(split_array)]
+        
+    return (
+        avail_data,
+        cand_data
+    )
     
 def import_geojson(path_to_json_data):
 
