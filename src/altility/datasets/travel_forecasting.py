@@ -68,6 +68,10 @@ def prep_travel_forecasting_data(
         travel_data
     )
     
+    x_t = dataset['x_t']
+    x_s = dataset['x_s']
+    print(x_t.shape)
+    print(x_s.shape)
     
     return dataset
     

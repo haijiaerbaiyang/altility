@@ -104,6 +104,12 @@ def prep_load_forecasting_data(
     raw_data = import_building_images(raw_data)
     raw_data = import_meteo_data(raw_data)
     dataset, raw_data = create_feature_label_pairs(raw_data)
+    
+    x_t = dataset['x_t']
+    x_s = dataset['x_s']
+    print(x_t.shape)
+    print(x_s.shape)
+    
     dataset = encode_time_features(raw_data, dataset)
     dataset = normalize_features(raw_data, dataset)
     (
