@@ -20,6 +20,8 @@ def prep_travel_forecasting_data(
     """
     """
     
+    ### Create all required paths to where chosen data is stored
+    
     # create the base path to data
     base_path = path_to_data + dataset_name + '/' + city_name + '/'
     file_list = os.listdir(base_path)
@@ -34,6 +36,8 @@ def prep_travel_forecasting_data(
     path_to_json_data = base_path + json_file_name
     path_to_rawdata = base_path + csv_file_name
     
+    
+    ### Save all parameters in dictionary
     raw_data = {
         'path_to_json_data': path_to_json_data,
         'path_to_rawdata': path_to_rawdata,
@@ -45,13 +49,19 @@ def prep_travel_forecasting_data(
         'plot': plot
     }
     
-    # process json file
+    
+    ### Import data
+    
+    # import travel time data
+    travel_data = pd.read_csv(path_to_rawdata)
+    
+    # import spatial data
     (
         map_movement_id_to_latitude_coordinates,
         map_movement_id_to_longitude_coordinates
     ) = import_geojson(path_to_json_data)
     
-    # prepare city zone centroids
+    # Calculate city zone centroids from polygons
     (
         map_movement_id_to_centroid_lat,
         map_movement_id_to_centroid_long
@@ -63,20 +73,27 @@ def prep_travel_forecasting_data(
     # merge into city_zone coordinates
     city_zone_coordinates = create_city_zone_coordinates(path_to_json_data)
     
-    # import travel time data
-    travel_data = pd.read_csv(path_to_rawdata)
     
-    # create feature label pairs
+    ### Pair features and labels
     dataset = create_feature_label_pairs(
         city_zone_coordinates,
         travel_data
     )
     
+    
+    ### Encode temporal features
     dataset = encode_time_features(raw_data, dataset)
+    
+    
+    ### Normalize all data
     dataset = normalize_features(raw_data, dataset) 
+    
+    
+    ### Split data into available and candidate datasets
     avail_data, cand_data = split_avail_cand(raw_data, dataset)
     
     
+    ### Standardize features
     cand_data = standardize_features(
         raw_data, 
         cand_data, 
@@ -88,6 +105,8 @@ def prep_travel_forecasting_data(
         avail_data
     )
     
+    
+    ### Create return datasets
     datasets = {
       'avail_data': avail_data,
       'cand_data': cand_data
