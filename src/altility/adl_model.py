@@ -114,12 +114,21 @@ class ADL_model:
         x_t_picked=None,
         x_s_picked=None,
         x_st_picked=None,
+        silent=True,
+        plot=False,
     ):    
           
         """
         """
         
-        pass
+        self.y_train = y_picked
+        self.x_t_train = x_t_picked
+        self.x_s_train = x_s_picked
+        self.x_st_train = x_st_picked
+        self.silent = silent
+        self.plot = plot
+        
+        self.train_model()
                         
     def create_prediction_model(self):
     

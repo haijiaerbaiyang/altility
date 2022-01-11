@@ -49,8 +49,8 @@ for model_name, model in ADL_model.models.items():
 ADL_model.collect(
     x_t_cand,
     x_s_cand,
-    silent=True,
-    plot=False
+    silent=False,
+    plot=True
 )
 
 
@@ -64,6 +64,13 @@ x_s_picked = x_s_cand[picked_array]
 
 
 ### Train model with picked data
+ADL_model.train(
+    y_picked,
+    x_t_picked,
+    x_s_picked,
+    silent=False,
+    plot=True
+)
 
 
 ### Extract not selected data from candidate data pool for testing/predicting
