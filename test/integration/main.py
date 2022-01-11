@@ -4,7 +4,6 @@ import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
 
-
 ### Import and prepare travel forecasting data
 datasets = travel_forecasting.prep_travel_forecasting_data(
     silent=False,
@@ -13,15 +12,15 @@ datasets = travel_forecasting.prep_travel_forecasting_data(
 
 ### Get features and labels for available data
 n_points=1000
-y = datasets[0]['y'][:n_points]
-x_t = datasets[0]['x_t'][:n_points]
-x_s = datasets[0]['x_s'][:n_points]
+y = datasets['avail_data']['y'][:n_points]
+x_t = datasets['avail_data']['x_t'][:n_points]
+x_s = datasets['avail_data']['x_s'][:n_points]
 
 
 ### Get features and labels for candidate data from spatio-temporal test set
-y_cand = datasets[1]['y'][:n_points]
-x_t_cand = datasets[1]['x_t'][:n_points]
-x_s_cand = datasets[1]['x_s'][:n_points]
+y_cand = datasets['cand_data']['y'][:n_points]
+x_t_cand = datasets['cand_data']['x_t'][:n_points]
+x_s_cand = datasets['cand_data']['x_s'][:n_points]
 
 
 ### Show us how they look like
@@ -67,7 +66,6 @@ ADL_model.collect(
 print(len(ADL_model.batch_index_list))
 print(len(ADL_model.inf_score_list))
 
-print(ADL_model.batch_index_list)
 
 """
 
@@ -83,17 +81,17 @@ datasets = load_forecasting.prep_load_forecasting_data(
 
 
 ### Get features and labels for available data
-y = datasets[0]['y']
-x_t = datasets[0]['x_t']
-x_s = datasets[0]['x_s1']
-x_st = datasets[0]['x_st']
+y = datasets['avail_data']['y']
+x_t = datasets['avail_data']['x_t']
+x_s = datasets['avail_data']['x_s1']
+x_st = datasets['avail_data']['x_st']
 
 
 ### Get features and labels for candidate data from spatio-temporal test set
-y_cand = datasets[3]['y']
-x_t_cand = datasets[3]['x_t']
-x_s_cand = datasets[3]['x_s1']
-x_st_cand = datasets[3]['x_st']
+y_cand = datasets['cand_data']['y']
+x_t_cand = datasets['cand_data']['x_t']
+x_s_cand = datasets['cand_data']['x_s1']
+x_st_cand = datasets['cand_data']['x_st']
 
 
 ### Show us how they look like

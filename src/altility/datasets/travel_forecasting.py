@@ -88,10 +88,10 @@ def prep_travel_forecasting_data(
         avail_data
     )
     
-    datasets = [
-      avail_data,
-      cand_data
-    ]
+    datasets = {
+      'avail_data': avail_data,
+      'cand_data': cand_data
+    }
     
     return datasets
     

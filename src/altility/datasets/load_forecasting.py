@@ -108,7 +108,7 @@ def prep_load_forecasting_data(
     dataset = encode_time_features(raw_data, dataset)
     dataset = normalize_features(raw_data, dataset)
     (
-        avail_data, 
+        train_val_data, 
         cand_data_spatial, 
         cand_data_temporal, 
         cand_data_spatemp
@@ -117,30 +117,28 @@ def prep_load_forecasting_data(
     cand_data_spatial = standardize_features(
         raw_data, 
         cand_data_spatial, 
-        avail_data
+        train_val_data
     )
     cand_data_temporal = standardize_features(
         raw_data, 
         cand_data_temporal, 
-        avail_data
+        train_val_data
     )
     cand_data_spatemp = standardize_features(
         raw_data, 
         cand_data_spatemp, 
-        avail_data
+        train_val_data
     )
-    avail_data = standardize_features(
+    train_val_data = standardize_features(
         raw_data, 
-        avail_data, 
-        avail_data
+        train_val_data, 
+        train_val_data
     )
     
-    datasets = (
-        avail_data, 
-        cand_data_spatial, 
-        cand_data_temporal, 
-        cand_data_spatemp
-    )
+    datasets = {
+        'avail_data': train_val_data, 
+        'cand_data': cand_data_spatemp
+    }
     
     return datasets
 
@@ -624,7 +622,6 @@ def create_feature_label_pairs(raw_data):
         'x_s': x_s,
         'x_st': x_st,
         'y': y,
-        'n_datapoints':len(x_t)
     }
 
     ### Process spatial features ###
@@ -653,7 +650,7 @@ def create_feature_label_pairs(raw_data):
     # create empty x_s1
     dataset['x_s1'] = np.zeros(
         (
-            dataset['n_datapoints'], 
+            len(dataset['y']), 
             image.shape[0], 
             image.shape[1]
         )
@@ -676,6 +673,7 @@ def create_feature_label_pairs(raw_data):
         dataset['x_s1'][:, :, i] = paired_df.iloc[:, 2:].values
 
     return dataset, raw_data
+    
     
 def encode_time_features(raw_data, dataset):
 
@@ -710,7 +708,7 @@ def encode_time_features(raw_data, dataset):
     ###
 
     # create an empty array for adding up values
-    dataset['x_t_ord_1D'] = np.zeros((dataset['n_datapoints'],))
+    dataset['x_t_ord_1D'] = np.zeros((len(dataset['y']),))
     x_t_copy = dataset['x_t']
 
     # check for all possible entries
@@ -806,100 +804,32 @@ def split_avail_cand(raw_data, dataset):
         print('Splitting data into training, validation and testing sets.')
 
     ###
-    # Reduce memory demand ###
-    ###
-
-    dataset['x_t'] = np.float32(dataset['x_t'])
-    dataset['x_st'] = np.float32(dataset['x_st'])
-    dataset['y'] = np.float32(dataset['y'])
-    dataset['x_s'] = dataset['x_s'].astype(int)
-    dataset['x_s1'] = np.float32(dataset['x_s1'])
-
-    ###
     # Sort arrays in ascending temporal order ###
     ###
 
     sort_array = np.argsort(dataset['x_t_ord_1D'])
-    dataset['x_t'] = dataset['x_t'][sort_array]
-    dataset['x_s'] = dataset['x_s'][sort_array]
-    dataset['x_st'] = dataset['x_st'][sort_array]
-    dataset['y'] = dataset['y'][sort_array]
-    dataset['x_s1'] = dataset['x_s1'][sort_array]
+    for key in dataset:
+        dataset[key] = dataset[key][sort_array]
 
     ###
     # Take away data from both ends of sorted arrays ###
     ###
 
     # get the number of datapoints to cut out for temporal prediction tests
-    split_point = math.ceil(raw_data['test_split'] / 2 * dataset['n_datapoints'])
-
-    ### extract data from beginning of temporaly sorted dataset ###
-    temporal_x_t_ord_1D = dataset['x_t_ord_1D'][:split_point]
-    dataset['x_t_ord_1D'] = dataset['x_t_ord_1D'][split_point:]
+    split_point = math.ceil(raw_data['test_split'] / 2 * len(dataset['y']))
     
-    temporal_x_t = dataset['x_t'][:split_point]
-    dataset['x_t'] = dataset['x_t'][split_point:]
-
-    temporal_x_s = dataset['x_s'][:split_point]
-    dataset['x_s'] = dataset['x_s'][split_point:]
-
-    temporal_x_st = dataset['x_st'][:split_point]
-    dataset['x_st'] = dataset['x_st'][split_point:]
-
-    temporal_y = dataset['y'][:split_point]
-    dataset['y'] = dataset['y'][split_point:]
-
-    temporal_x_s1 = dataset['x_s1'][:split_point]
-    dataset['x_s1'] = dataset['x_s1'][split_point:]
-
-    ### extract data from end of temporaly sorted dataset ###
-    temporal_x_t_ord_1D = np.concatenate(
-        (
-            temporal_x_t_ord_1D,
-            dataset['x_t_ord_1D'][-split_point:]
+    temporal_test_data = {}
+    for key in dataset:
+        temporal_test_data[key] = dataset[key][:split_point]
+        dataset[key] = dataset[key][split_point:]
+        temporal_test_data[key] = np.concatenate(
+            (
+                temporal_test_data[key], 
+                dataset[key][-split_point:]
+            )
         )
-    )
-    dataset['x_t_ord_1D'] = dataset['x_t_ord_1D'][:-split_point]
-    
-    temporal_x_t = np.concatenate(
-        (
-            temporal_x_t, 
-            dataset['x_t'][-split_point:]
-        )
-    )
-    dataset['x_t'] = dataset['x_t'][:-split_point]
+        dataset[key] = dataset[key][:-split_point]
 
-    temporal_x_s = np.concatenate(
-        (
-            temporal_x_s, 
-            dataset['x_s'][-split_point:]
-        )
-    )
-    dataset['x_s'] = dataset['x_s'][:-split_point]
-
-    temporal_x_st = np.concatenate(
-        (
-            temporal_x_st, 
-            dataset['x_st'][-split_point:]
-        )
-    )
-    dataset['x_st'] = dataset['x_st'][:-split_point]
-
-    temporal_y = np.concatenate(
-        (
-            temporal_y, 
-            dataset['y'][-split_point:]
-        )
-    )
-    dataset['y'] = dataset['y'][:-split_point]
-
-    temporal_x_s1 = np.concatenate(
-        (
-            temporal_x_s1, 
-            dataset['x_s1'][-split_point:]
-        )
-    )
-    dataset['x_s1'] = dataset['x_s1'][:-split_point]
 
     ###
     # Set the remaining data as spatial dataset ###
@@ -919,89 +849,31 @@ def split_avail_cand(raw_data, dataset):
     # transform building ID strings to integers
     test_building_samples = [int(x) for x in test_building_samples]
 
-    spatial_x_t_ord_1D = dataset['x_t_ord_1D']
-    dataset['x_t_ord_1D'] = 0
-    
-    spatial_x_t = dataset['x_t']
-    dataset['x_t'] = 0
+    spatial_test_data = {}
+    for key in dataset:
+        spatial_test_data[key] = dataset[key]
+        dataset[key] = 0
 
-    spatial_x_s = dataset['x_s']
-    dataset['x_s'] = 0
-
-    spatial_x_st = dataset['x_st']
-    dataset['x_st'] = 0
-
-    spatial_y = dataset['y']
-    dataset['y'] = 0
-
-    spatial_x_s1 = dataset['x_s1']
-    dataset['x_s1'] = 0
 
     ###
     # Extract temporal and spatio-temporal test sets ###
     ###
 
     ### create the filtering array ###
-    boolean_filter_array = np.zeros((len(temporal_x_s),), dtype=bool)
+    boolean_filter_array = np.zeros((len(temporal_test_data['y']),), dtype=bool)
 
     for building_id in test_building_samples:
         boolean_filter_array = boolean_filter_array | (
-            temporal_x_s[:, 0] == building_id
+            temporal_test_data['x_s'][:, 0] == building_id
         )
 
     inverted_boolean_filter_array = np.invert(boolean_filter_array)
 
-    ### Spatio-temporal ###
-    spatemp_x_t_ord_1D = temporal_x_t_ord_1D[boolean_filter_array]
-    spatemp_x_t = temporal_x_t[boolean_filter_array]
-    spatemp_x_s = temporal_x_s[boolean_filter_array]
-    spatemp_x_st = temporal_x_st[boolean_filter_array]
-    spatemp_y = temporal_y[boolean_filter_array]
-    spatemp_x_s1 = temporal_x_s1[boolean_filter_array]
-
-    spatemp_test_data = {
-        'x_t_ord_1D': spatemp_x_t_ord_1D,
-        'x_t': spatemp_x_t, 
-        'x_s': spatemp_x_s, 
-        'x_s1': spatemp_x_s1, 
-        'x_st': spatemp_x_st, 
-        'y': spatemp_y,
-        'n_datapoints': len(spatemp_y)
-    }
-    (
-        spatemp_x_t_ord_1D,
-        spatemp_x_t, 
-        spatemp_x_s, 
-        spatemp_x_s1, 
-        spatemp_x_st, 
-        spatemp_y
-    ) = 0, 0, 0, 0, 0, 0
-
-    ### Temporal ###
-    temporal_x_t_ord_1D = temporal_x_t_ord_1D[inverted_boolean_filter_array]
-    temporal_x_t = temporal_x_t[inverted_boolean_filter_array]
-    temporal_x_s = temporal_x_s[inverted_boolean_filter_array]
-    temporal_x_st = temporal_x_st[inverted_boolean_filter_array]
-    temporal_y = temporal_y[inverted_boolean_filter_array]
-    temporal_x_s1 = temporal_x_s1[inverted_boolean_filter_array]
-
-    temporal_test_data = {
-        'x_t_ord_1D': temporal_x_t_ord_1D,
-        'x_t': temporal_x_t, 
-        'x_s': temporal_x_s, 
-        'x_s1': temporal_x_s1, 
-        'x_st': temporal_x_st, 
-        'y': temporal_y,
-        'n_datapoints': len(temporal_y)
-    }
-    (
-        temporal_x_t_ord_1D,
-        temporal_x_t, 
-        temporal_x_s, 
-        temporal_x_s1, 
-        temporal_x_st, 
-        temporal_y 
-    ) = 0, 0, 0, 0, 0, 0
+    ### Spatio-temporal and temporal ###
+    spatemp_test_data = {}
+    for key in temporal_test_data:
+        spatemp_test_data[key] = temporal_test_data[key][boolean_filter_array]
+        temporal_test_data[key] = temporal_test_data[key][inverted_boolean_filter_array]
 
 
     ###
@@ -1009,69 +881,21 @@ def split_avail_cand(raw_data, dataset):
     ###
 
     ### create the filtering array ###
-    boolean_filter_array = np.zeros((len(spatial_x_s),), dtype=bool)
+    boolean_filter_array = np.zeros((len(spatial_test_data['y']),), dtype=bool)
 
     for building_id in test_building_samples:
         boolean_filter_array = (
-            boolean_filter_array | (spatial_x_s[:, 0] == building_id)
+            boolean_filter_array | (spatial_test_data['x_s'][:, 0] == building_id)
         )
 
     inverted_boolean_filter_array = np.invert(boolean_filter_array)
 
     ### Train-validation split ###
-    train_val_x_t_ord_1D = spatial_x_t_ord_1D[inverted_boolean_filter_array]
-    train_val_x_t = spatial_x_t[inverted_boolean_filter_array]
-    train_val_x_s = spatial_x_s[inverted_boolean_filter_array]
-    train_val_x_st = spatial_x_st[inverted_boolean_filter_array]
-    train_val_y = spatial_y[inverted_boolean_filter_array]
-    train_val_x_s1 = spatial_x_s1[inverted_boolean_filter_array]
-
-    ### Spatial ###
-    spatial_x_t_ord_1D = spatial_x_t_ord_1D[boolean_filter_array]
-    spatial_x_t = spatial_x_t[boolean_filter_array]
-    spatial_x_s = spatial_x_s[boolean_filter_array]
-    spatial_x_st = spatial_x_st[boolean_filter_array]
-    spatial_y = spatial_y[boolean_filter_array]
-    spatial_x_s1 = spatial_x_s1[boolean_filter_array]
-
-    spatial_test_data = {
-        'x_t_ord_1D': spatial_x_t_ord_1D,
-        'x_t': spatial_x_t, 
-        'x_s': spatial_x_s, 
-        'x_s1': spatial_x_s1, 
-        'x_st': spatial_x_st, 
-        'y': spatial_y,
-        'n_datapoints': len(spatial_y)
-    }
-    (
-        spatial_x_t_ord_1D,
-        spatial_x_t, 
-        spatial_x_s, 
-        spatial_x_s1, 
-        spatial_x_st, 
-        spatial_y 
-    ) = 0, 0, 0, 0, 0, 0
-
-
-
-    train_val_data = {
-        'x_t_ord_1D': train_val_x_t_ord_1D,
-        'x_t': train_val_x_t, 
-        'x_s': train_val_x_s, 
-        'x_s1': train_val_x_s1, 
-        'x_st': train_val_x_st, 
-        'y': train_val_y,
-        'n_datapoints': len(train_val_y)
-    }
-    (
-        train_val_x_t_ord_1D,
-        train_val_x_t, 
-        train_val_x_s, 
-        train_val_x_s1, 
-        train_val_x_st, 
-        train_val_y
-    ) = 0, 0, 0, 0, 0, 0
-
+    train_val_data = {}
+    for key in spatial_test_data:
+        train_val_data[key] = spatial_test_data[key][inverted_boolean_filter_array]
+        spatial_test_data[key] = spatial_test_data[key][boolean_filter_array]
+   
 
     def f_randomize(dataset):
     
@@ -1083,12 +907,8 @@ def split_avail_cand(raw_data, dataset):
         # shuffle random array
         np.random.shuffle(random_array)
 
-        dataset['x_t_ord_1D'] = dataset['x_t_ord_1D'][random_array]
-        dataset['x_t'] = dataset['x_t'][random_array]
-        dataset['x_s'] = dataset['x_s'][random_array]
-        dataset['x_s1'] = dataset['x_s1'][random_array]
-        dataset['x_st'] = dataset['x_st'][random_array]
-        dataset['y'] = dataset['y'][random_array]
+        for key in dataset:
+            dataset[key] = dataset[key][random_array]
 
         return dataset
         
@@ -1101,12 +921,12 @@ def split_avail_cand(raw_data, dataset):
     if not raw_data['silent']:
 
         n_test_datapoints = (
-            spatial_test_data['n_datapoints']
-            + temporal_test_data['n_datapoints']
-            + spatemp_test_data['n_datapoints']
+            len(spatial_test_data['y'])
+            + len(temporal_test_data['y'])
+            + len(spatemp_test_data['y'])
         )
         n_total_datapoints = (
-            train_val_data['n_datapoints']
+            len(train_val_data['y'])
             + n_test_datapoints
         )
 
@@ -1119,8 +939,8 @@ def split_avail_cand(raw_data, dataset):
 
         print(
             'Available data:   {} ({:.0%})'.format(
-                train_val_data['n_datapoints'],
-                train_val_data['n_datapoints'] / n_total_datapoints,
+                len(train_val_data['y']),
+                len(train_val_data['y']) / n_total_datapoints,
             )
         )
         print(
@@ -1132,20 +952,20 @@ def split_avail_cand(raw_data, dataset):
 
         print(
             'Spatial testing data:         {} ({:.0%})'.format(
-                spatial_test_data['n_datapoints'],
-                spatial_test_data['n_datapoints'] / n_test_datapoints,
+                len(spatial_test_data['y']),
+                len(spatial_test_data['y']) / n_test_datapoints,
             )
         )
         print(
             'Temporal testing data:        {} ({:.0%})'.format(
-                temporal_test_data['n_datapoints'],
-                temporal_test_data['n_datapoints'] / n_test_datapoints,
+                len(temporal_test_data['y']),
+                len(temporal_test_data['y']) / n_test_datapoints,
             )
         )
         print(
             'Spatio-temporal testing data: {} ({:.0%})'.format(
-                spatemp_test_data['n_datapoints'],
-                spatemp_test_data['n_datapoints'] / n_test_datapoints,
+                len(spatemp_test_data['y']),
+                len(spatemp_test_data['y']) / n_test_datapoints,
             )
         )
 
