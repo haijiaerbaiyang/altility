@@ -44,8 +44,12 @@ def prep_load_forecasting_data(
     plot=False,
 ):
 
+    """ Imports data, creates feature-label pairs, normalizes data, splits it into
+    available data for training and validation, as well as into candidate data
+    consisting of spatial, temporal and spatio-temporal prediction tasks. After
+    splitting data, it is standardized.
     """
-    """
+    
     
     ### Create all required paths to where chosen data is stored
     path_to_data += dataset_name
@@ -76,6 +80,7 @@ def prep_load_forecasting_data(
     else:
         path_to_aerial_imagery_folder += 'rgb/'
         n_channels = 3
+        
         
     ### Save all parameters in dictionary
     raw_data = {
@@ -108,14 +113,18 @@ def prep_load_forecasting_data(
     raw_data = import_building_images(raw_data)
     raw_data = import_meteo_data(raw_data)
     
+    
     ### Pair features and labels
     dataset, raw_data = create_feature_label_pairs(raw_data)
+
 
     ### Encode temporal features
     dataset = encode_time_features(raw_data, dataset
     
+    
     ### Normalize all data
     dataset = normalize_features(raw_data, dataset)
+    
     
     ### Split data into train_val and various testing datasets
     (
@@ -124,6 +133,7 @@ def prep_load_forecasting_data(
         cand_data_temporal, 
         cand_data_spatemp
     ) = split_avail_cand(raw_data, dataset)
+    
     
     ### Standardize features
     cand_data_spatial = standardize_features(
@@ -147,11 +157,13 @@ def prep_load_forecasting_data(
         train_val_data
     )
     
+    
     ### simplify return datasets by removing x_s and only giving x_s1
     train_val_data['x_s'] = train_val_data['x_s1']
     cand_data_spatemp['x_s'] = cand_data_spatemp['x_s1']
     del train_val_data['x_s1']
     del cand_data_spatemp['x_s1']
+    
     
     ### Create return datasets
     datasets = {
