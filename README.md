@@ -116,7 +116,7 @@ The package can be tested on datasets that are either publicly available, or whi
 we make public for making spatio-temporal predictions. A first dataset consists of 
 electric load that we provide in our Github repository. To prepare the data
 for usage with altility, use the **prep_load_forecasting_data()** function provided
-in load_forecasting.py with the following parameter and return values:
+in **load_forecasting.py** with the following parameter and return values:
 
 <table>
 
@@ -325,20 +325,23 @@ in load_forecasting.py with the following parameter and return values:
     </td>
     <td>
       A dictionary containing available and candidate data, that are stored with
-      the keys <b>'avail_data'</b> and <b>'cand_data'</b>. These are dictionaries themselves, 
-      and store variables under keys <b>'x_t'</b>, <b>'x_s'</b>, <b>'x_st'</b> and <b>'y'</b>. 
-      These stand for only time-variant features <b>'x_t'</b>, only space-variant 
-      features <b>'x_s'</b>, space- and time-variant features <b>'x_st'</b> and labels 
-      <b>'y'</b>.
+      the keys <b>'avail_data'</b> and <b>'cand_data'</b>. These are dictionaries 
+      themselves, and store variables under keys <b>'x_t'</b>, <b>'x_s'</b>, 
+      <b>'x_st'</b> and <b>'y'</b>. These stand for only time-variant features 
+      <b>'x_t'</b>, only space-variant features <b>'x_s'</b>, space- and 
+      time-variant features <b>'x_st'</b> and labels <b>'y'</b>.
     </td>
   </tr>
-  
     
 </table>
 
 
-It can further be tested using Uber movement travel time data.
-
+A second dataset consists of travel time data provided by the Uber movement project.
+**Note:** This data is licensed under Creative Commons, Attribution Non-Commercial
+(https://creativecommons.org/licenses/by-nc/3.0/us/). This is different from the
+MIT license we provide for our package here. To prepare the data for usage with 
+altility, use the **prep_travel_forecasting_data()** function provided in 
+**travel_forecasting.py** with the following parameters and return values.
 
 
 
