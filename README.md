@@ -77,7 +77,7 @@ it contains and results it can generate.
       <b>collect(x_t_cand=None, x_s_cand=None, x_st_cand=None, **kwargs):</b>
     </td>
     <td>
-      Performs active learning.
+      Collect candidate data with embedding uncertainty active learning.
     </td>
   </tr>
   
@@ -86,7 +86,7 @@ it contains and results it can generate.
       <b>train(y_picked, x_t_picked, x_s_picked=None, x_st_picked=None, **kwargs):</b>
     </td>
     <td>
-      Performs active learning.
+      Train model with queried labels of chosen candidate data points.
     </td>
   </tr>
   
@@ -95,7 +95,9 @@ it contains and results it can generate.
       <b>predict(y_pred=None, x_t_cand=None, x_s_cand=None, x_st_cand=None, **kwargs):</b>
     </td>
     <td>
-      Performs active learning.
+      Predict labels for unqueried candidate data points. If you are testing model,
+      and have labels available, you can pass these and see the difference between
+      true and predicted labels of unqueried candidate data points.
     </td>
   </tr>
     
