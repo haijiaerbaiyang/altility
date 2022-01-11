@@ -7,11 +7,17 @@ import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
 
+
+###
+# Full example for forecasting travel times between single city zones ###
+###
+
 ### Import and prepare travel forecasting data
 datasets = travel_forecasting.prep_travel_forecasting_data(
     silent=False,
     plot=True
 )
+
 
 ### Get features and labels for available data
 n_points=1000
