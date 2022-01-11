@@ -108,8 +108,19 @@ class ADL_model:
         self.split_train_val()
         self.train_model()
         
+    def train(
+        self,
+        y_picked,
+        x_t_picked=None,
+        x_s_picked=None,
+        x_st_picked=None,
+    ):    
+          
+        """
+        """
         
-        
+        pass
+                        
     def create_prediction_model(self):
     
         """
@@ -623,6 +634,7 @@ class ADL_model:
 
         return model_input_list, y_batched
         
+        
     def train_model(self):
         """
         """
@@ -856,8 +868,24 @@ class ADL_model:
         ):
             model = self.models['x_joint_encoder']
             self.encoding = model.predict([x_t, x_s, x_st])
-        
-            
+        elif (
+            self.x_t_cand is not None and 
+            self.x_s_cand is not None
+        ):
+            model = self.models['x_joint_encoder']
+            self.encoding = model.predict([x_t, x_s])
+        elif (
+            self.x_t_cand is not None and 
+            self.x_st_cand is not None
+        ):
+            model = self.models['x_joint_encoder']
+            self.encoding = model.predict([x_t, x_st])
+        elif (
+            self.x_s_cand is not None and 
+            self.x_st_cand is not None
+        ):
+            model = self.models['x_joint_encoder']
+            self.encoding = model.predict([x_s, x_st])
         elif self.x_st_cand is not None:
             model = self.models['x_st_encoder']
             self.encoding = model.predict(x_st)

@@ -1,5 +1,8 @@
 import sys
 sys.path.append('/altility/src')
+
+import numpy as np
+
 import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
@@ -21,17 +24,6 @@ x_s = datasets['avail_data']['x_s'][:n_points]
 y_cand = datasets['cand_data']['y'][:n_points]
 x_t_cand = datasets['cand_data']['x_t'][:n_points]
 x_s_cand = datasets['cand_data']['x_s'][:n_points]
-
-
-### Show us how they look like
-print(x_t.shape)
-print(x_s.shape)
-print(y.shape)
-
-### Show us how they look like
-print(x_t_cand.shape)
-print(x_s_cand.shape)
-print(y_cand.shape)
 
 
 ### Create a class instance
@@ -62,9 +54,28 @@ ADL_model.collect(
 )
 
 
-### Show us how many data points are chosen
-print(len(ADL_model.batch_index_list))
-print(len(ADL_model.inf_score_list))
+### Extract selected data from candidate data pool for training
+picked_array = np.zeros([len(y_cand),], dtype=bool)
+picked_array[ADL_model.batch_index_list] = True
+
+y_picked = y_cand[picked_array]
+x_t_picked = x_t_cand[picked_array]
+x_s_picked = x_s_cand[picked_array]
+
+
+### Train model with picked data
+
+
+### Extract not selected data from candidate data pool for testing/predicting
+pred_array = np.invert(picked_array)
+
+y_pred = y_cand[pred_array]
+x_t_pred = x_t_cand[pred_array]
+x_s_pred = x_s_cand[pred_array] 
+
+
+### Predict on remaining data
+
 
 
 """
