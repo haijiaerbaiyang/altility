@@ -7,6 +7,7 @@ import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
 
+"""
 ### Import and prepare travel forecasting data
 datasets = travel_forecasting.prep_travel_forecasting_data(
     silent=False,
@@ -86,7 +87,6 @@ x_s_pred = x_s_cand[pred_array]
 
 
 """
-
 ###
 # Full example for forecasting electric consumption of single buildings ###
 ###
@@ -112,13 +112,6 @@ x_s_cand = datasets['cand_data']['x_s1']
 x_st_cand = datasets['cand_data']['x_st']
 
 
-### Show us how they look like
-print(x_t.shape)
-print(x_s.shape)
-print(x_st.shape)
-print(y.shape)
-
-
 ### Create a class instance
 ADL_model = adl_model.ADL_model('Electrific f_nn')
 
@@ -134,11 +127,6 @@ ADL_model.initialize(
 )
 
 
-### Show us if we created all models
-for model_name, model in ADL_model.models.items():
-    print(model_name)
-
-
 ### Collect candidate data
 ADL_model.collect(
     x_t_cand,
@@ -149,11 +137,33 @@ ADL_model.collect(
 )
 
 
-### Show us how many data points are chosen
-print(len(ADL_model.batch_index_list))
-print(len(ADL_model.inf_score_list))
+### Extract selected data from candidate data pool for training
+picked_array = np.zeros([len(y_cand),], dtype=bool)
+picked_array[ADL_model.batch_index_list] = True
 
-# show us that we ran successfully
-print('the file test/integration/main.py is successfully executed through docker')
+y_picked = y_cand[picked_array]
+x_t_picked = x_t_cand[picked_array]
+x_s_picked = x_s_cand[picked_array]
+x_st_picked = x_st_cand[picked_array]
 
-"""
+
+### Train model with picked data
+ADL_model.train(
+    y_picked,
+    x_t_picked,
+    x_s_picked,
+    x_st_picked,
+    silent=False,
+    plot=True
+)
+
+
+### Extract not selected data from candidate data pool for testing/predicting
+pred_array = np.invert(picked_array)
+
+y_pred = y_cand[pred_array]
+x_t_pred = x_t_cand[pred_array]
+x_s_pred = x_s_cand[pred_array]
+x_st_pred = x_st_cand[pred_array] 
+
+
