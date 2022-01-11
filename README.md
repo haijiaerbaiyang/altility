@@ -321,14 +321,15 @@ in load_forecasting.py with the following parameter and return values:
   
   <tr> 
     <td>
-      <b>datasets </b>: <br />  dict
+      <b>datasets</b>: <br /> dict
     </td>
     <td>
       A dictionary containing available and candidate data, that are stored with
-      the keys 'avail_data' and 'cand_data'. These are dictionaries themselves, 
-      and store variables under keys 'x_t', 'x_s', 'x_st' and 'y'. These stand 
-      for only time-variant features 'x_t', only space-variant features 'x_s', 
-      space- and time-variant features 'x_st' and labels 'y'.
+      the keys **'avail_data'** and **'cand_data'**. These are dictionaries themselves, 
+      and store variables under keys **'x_t'**, **'x_s'**, **'x_st'** and **'y'**. 
+      These stand for only time-variant features **'x_t'**, only space-variant 
+      features **'x_s'**, space- and time-variant features **'x_st'** and labels 
+      **'y'**.
     </td>
   </tr>
   
