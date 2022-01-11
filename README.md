@@ -325,11 +325,11 @@ in load_forecasting.py with the following parameter and return values:
     </td>
     <td>
       A dictionary containing available and candidate data, that are stored with
-      the keys **'avail_data'** and **'cand_data'**. These are dictionaries themselves, 
-      and store variables under keys **'x_t'**, **'x_s'**, **'x_st'** and **'y'**. 
-      These stand for only time-variant features **'x_t'**, only space-variant 
-      features **'x_s'**, space- and time-variant features **'x_st'** and labels 
-      **'y'**.
+      the keys <b>'avail_data'</b> and <b>'cand_data'</b>. These are dictionaries themselves, 
+      and store variables under keys <b>'x_t'</b>, <b>'x_s'</b>, <b>'x_st'</b> and <b>'y'</b>. 
+      These stand for only time-variant features <b>'x_t'</b>, only space-variant 
+      features <b>'x_s'</b>, space- and time-variant features <b>'x_st'</b> and labels 
+      <b>'y'</b>.
     </td>
   </tr>
   
