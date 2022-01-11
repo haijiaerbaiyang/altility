@@ -1131,7 +1131,7 @@ class ADL_model:
         self.inf_score_list = inf_score_list
         
         
-    def test_model(
+    def predict(
         self,
         y_pred=None,
         x_t_pred=None,

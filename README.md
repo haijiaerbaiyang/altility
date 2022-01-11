@@ -79,7 +79,25 @@ it contains and results it can generate.
     <td>
       Performs active learning.
     </td>
-  </tr> 
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>train(y_picked, x_t_picked, x_s_picked=None, x_st_picked=None, **kwargs):</b>
+    </td>
+    <td>
+      Performs active learning.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>predict(y_pred=None, x_t_cand=None, x_s_cand=None, x_st_cand=None, **kwargs):</b>
+    </td>
+    <td>
+      Performs active learning.
+    </td>
+  </tr>
     
 </table>
 
