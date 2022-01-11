@@ -83,7 +83,7 @@ it contains and results it can generate.
   
   <tr> 
     <td>
-      <b>train(y_picked, x_t_picked, x_s_picked=None, x_st_picked=None, **kwargs):</b>
+      <b>train(y_picked, x_t_picked=None, x_s_picked=None, x_st_picked=None, **kwargs):</b>
     </td>
     <td>
       Train model with queried labels of chosen candidate data points.
