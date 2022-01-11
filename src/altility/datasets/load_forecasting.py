@@ -80,8 +80,8 @@ def prep_load_forecasting_data(
     else:
         path_to_aerial_imagery_folder += 'rgb/'
         n_channels = 3
-        
-        
+    
+    
     ### Save all parameters in dictionary
     raw_data = {
         'path_to_data': path_to_data,
@@ -116,10 +116,10 @@ def prep_load_forecasting_data(
     
     ### Pair features and labels
     dataset, raw_data = create_feature_label_pairs(raw_data)
-
-
+    
+    
     ### Encode temporal features
-    dataset = encode_time_features(raw_data, dataset
+    dataset = encode_time_features(raw_data, dataset)
     
     
     ### Normalize all data
@@ -176,7 +176,7 @@ def prep_load_forecasting_data(
 
 def import_consumption_profiles(raw_data):
 
-    """
+    """ Imports building-scale electric consumption ground truth data.
     """
     
     if not raw_data['silent']:
@@ -320,7 +320,7 @@ def import_consumption_profiles(raw_data):
     
 def import_building_images(raw_data):
 
-    """ 
+    """ Imports histogram values of building image pixels.
     """
 
     if not raw_data['silent']:
@@ -402,7 +402,7 @@ def import_building_images(raw_data):
 
 def import_meteo_data(raw_data):
 
-    """ 
+    """ Imports space-time variant meteorological data.
     """
 
     if not raw_data['silent']:
@@ -502,7 +502,7 @@ def import_meteo_data(raw_data):
     
 def create_feature_label_pairs(raw_data):
 
-    """
+    """ Pairs features and labels.
     """
 
     # determine start and end of iteration over each paired dataframe
@@ -707,7 +707,7 @@ def create_feature_label_pairs(raw_data):
     
 def encode_time_features(raw_data, dataset):
 
-    """ 
+    """ Gives you one-hot encoded time stamps if chosen so.
     """
 
     if not raw_data['silent']:
@@ -793,7 +793,7 @@ def encode_time_features(raw_data, dataset):
     
 def normalize_features(raw_data, dataset):
 
-    """
+    """ Min max scales data.
     """
 
     if raw_data['normalization']:
@@ -826,7 +826,7 @@ def normalize_features(raw_data, dataset):
   
 def split_avail_cand(raw_data, dataset):
 
-    """ 
+    """ Splits data into available and candidate datasets.
     """
 
     if not raw_data['silent']:
@@ -929,7 +929,7 @@ def split_avail_cand(raw_data, dataset):
 
     def f_randomize(dataset):
     
-        """
+        """ Randomizes all entries of the passed dataset dictionary.
         """
         # create random array
         random_array = np.arange(len(dataset['x_t']))
@@ -1006,7 +1006,6 @@ def split_avail_cand(raw_data, dataset):
         temporal_test_data,
         spatemp_test_data,
     )
-
 
   
 def standardize_features(

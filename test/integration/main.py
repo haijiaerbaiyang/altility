@@ -7,7 +7,6 @@ import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
 
-"""
 ###
 # Full example for forecasting travel times between single city zones ###
 ###
@@ -189,3 +188,4 @@ ADL_model.test_model(
     silent=False,
     plot=True
 )
+"""
