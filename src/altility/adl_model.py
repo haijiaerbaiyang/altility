@@ -21,14 +21,18 @@ class ADL_model:
     def __init__(
         self,
         name='adl_model',
+        path_to_results='results/'
     ):
     
         ### Parameters
         self.name = 'undisputed'
-        
+        self.path_to_results = 'results/'
         
         ### Results
         
+        
+        if not os.path.exists(path_to_results):
+            os.mkdir(path_to_results)
     
     ### Methods 
         
@@ -106,7 +110,7 @@ class ADL_model:
         ### Call methods
         self.create_prediction_model()
         self.split_train_val()
-        self.train_model()
+        self.train_model(fig_name='train_vs_val_initial')
         
     def train(
         self,
@@ -128,7 +132,7 @@ class ADL_model:
         self.silent = silent
         self.plot = plot
         
-        self.train_model()
+        self.train_model(fig_name='train_vs_val_adl')
                         
     def create_prediction_model(self):
     
@@ -644,7 +648,10 @@ class ADL_model:
         return model_input_list, y_batched
         
         
-    def train_model(self):
+    def train_model(
+        self, 
+        fig_name='training'
+    ):
         """
         """
         
@@ -830,6 +837,11 @@ class ADL_model:
             plt.xlabel('epoch')
             plt.legend(['training', 'validation'], loc='upper left')
             plt.show()
+            
+            # save figure
+            file_name = fig_name +'.pdf'
+            saving_path = self.path_to_results + file_name
+            plt.savefig(saving_path)
             
             
         self.train_loss_history = train_loss_history
@@ -1114,3 +1126,117 @@ class ADL_model:
         # Save results
         self.batch_index_list = batch_index_list
         self.inf_score_list = inf_score_list
+        
+        
+    def test_model(
+        self,
+        y_pred=None,
+        x_t_pred=None,
+        x_s_pred=None,
+        x_st_pred=None,
+        silent=True,
+        plot=False,
+    ):
+
+        """ 
+        """
+        
+        def plot_true_vs_prediction(test_data_Y, predictions):
+
+            """ Visualizes predictions vs. true values. """
+
+            plot_rows = 3
+            plot_clos = 3
+
+            # create a matplotlib.pyplot.subplots figure
+            fig, ax = plt.subplots(plot_rows, plot_clos, figsize=(16, 16))
+
+            # set the figtitle
+            fig.suptitle('True vs. predicted', fontsize=16)
+
+            # pick at random a set of integers for visualization
+            data_indices = np.random.randint(
+                0, 
+                len(test_data_Y), 
+                plot_rows * plot_clos
+            )
+
+            # create a variable for iteratively adding number of subplots
+            subplot_counter = 0
+
+            # iterate over number of rows
+            for i in range(plot_rows):
+
+                # iterate over number of columns
+                for j in range(plot_clos):
+
+                    # choose currently iterated random index
+                    data_index = data_indices[subplot_counter]
+
+                    # plot the true values
+                    plot1 = ax[i, j].plot(test_data_Y[data_index])
+
+                    # plot the predicted values
+                    plot2 = ax[i, j].plot(predictions[data_index])
+
+                    # increment the subplot_counter
+                    subplot_counter += 1
+
+            # add a figure legend
+            fig.legend(
+                [plot1, plot2],
+                labels=['true', 'predicted'],
+                fontsize=16,
+            )
+            
+            # save figure
+            file_name = 'true_vs_pred_cand.pdf'
+            saving_path = self.path_to_results + file_name
+            fig.savefig(saving_path)
+
+        ### Reset the state of the test loss metric
+        loss_function = tf.keras.losses.mean_squared_error
+        mean_loss = tf.keras.metrics.Mean(name='mean_loss_train_test')
+        mean_loss.reset_states()
+
+
+        ### Make predictions
+        model = self.models['f_nn']
+        model_input_list = []
+        if self.x_t is not None:
+            model_input_list.append(x_t_pred)
+        if self.x_s is not None:
+            model_input_list.append(x_s_pred)
+        if self.x_st is not None:
+            model_input_list.append(x_st_pred)
+        predictions = model.predict(model_input_list)
+        
+        self.silent = silent
+        self.plot = plot
+
+        ###
+        # Calculate the testing loss ###
+        ###
+        
+        if y_pred is not None:
+            # calculate the testing losses
+            t_loss = loss_function(y_pred, predictions)
+
+            # take the mean of single losses
+            testing_loss = mean_loss(t_loss).numpy()
+
+            # tell us how much testing loss we have
+            if not self.silent:
+            
+                print('loss:', testing_loss)
+                
+            # Plot exemplar predictions
+            if self.plot:
+                plot_true_vs_prediction(y_pred, predictions)
+
+        else:
+            testing_loss = None
+            
+        self.predictions = predictions
+        self.testing_loss = testing_loss
+        

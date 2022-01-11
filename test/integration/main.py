@@ -7,7 +7,6 @@ import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
 
-"""
 ### Import and prepare travel forecasting data
 datasets = travel_forecasting.prep_travel_forecasting_data(
     silent=False,
@@ -83,6 +82,13 @@ x_s_pred = x_s_cand[pred_array]
 
 
 ### Predict on remaining data
+ADL_model.test_model(
+    y_pred,
+    x_t_pred,
+    x_s_pred,
+    silent=False,
+    plot=True
+)
 
 
 
@@ -167,3 +173,13 @@ x_s_pred = x_s_cand[pred_array]
 x_st_pred = x_st_cand[pred_array] 
 
 
+### Predict on remaining data
+ADL_model.test_model(
+    y_pred,
+    x_t_pred,
+    x_s_pred,
+    x_st_pred,
+    silent=False,
+    plot=True
+)
+"""
