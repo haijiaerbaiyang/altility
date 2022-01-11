@@ -46,6 +46,8 @@ def prep_load_forecasting_data(
 
     """
     """
+    
+    ### Create all required paths to where chosen data is stored
     path_to_data += dataset_name
     profile_years = ['2014']
     path_to_building_year_profile_folder = (
@@ -62,7 +64,7 @@ def prep_load_forecasting_data(
         path_to_data 
         + '/meteo data/'
     )
-    
+
     if spatial_features == 'histogram':
           path_to_aerial_imagery_folder += 'histogram/'
     elif spatial_features == 'average':
@@ -75,7 +77,7 @@ def prep_load_forecasting_data(
         path_to_aerial_imagery_folder += 'rgb/'
         n_channels = 3
         
-    
+    ### Save all parameters in dictionary
     raw_data = {
         'path_to_data': path_to_data,
         'profile_years': profile_years,
@@ -100,13 +102,22 @@ def prep_load_forecasting_data(
         'plot': plot
     }
     
+    
+    ### Import data
     raw_data = import_consumption_profiles(raw_data)
     raw_data = import_building_images(raw_data)
     raw_data = import_meteo_data(raw_data)
+    
+    ### Pair features and labels
     dataset, raw_data = create_feature_label_pairs(raw_data)
 
-    dataset = encode_time_features(raw_data, dataset)
+    ### Encode temporal features
+    dataset = encode_time_features(raw_data, dataset
+    
+    ### Normalize all data
     dataset = normalize_features(raw_data, dataset)
+    
+    ### Split data into train_val and various testing datasets
     (
         train_val_data, 
         cand_data_spatial, 
@@ -114,6 +125,7 @@ def prep_load_forecasting_data(
         cand_data_spatemp
     ) = split_avail_cand(raw_data, dataset)
     
+    ### Standardize features
     cand_data_spatial = standardize_features(
         raw_data, 
         cand_data_spatial, 
@@ -135,13 +147,19 @@ def prep_load_forecasting_data(
         train_val_data
     )
     
+    ### simplify return datasets by removing x_s and only giving x_s1
+    train_val_data['x_s'] = train_val_data['x_s1']
+    cand_data_spatemp['x_s'] = cand_data_spatemp['x_s1']
+    del train_val_data['x_s1']
+    del cand_data_spatemp['x_s1']
+    
+    ### Create return datasets
     datasets = {
         'avail_data': train_val_data, 
         'cand_data': cand_data_spatemp
     }
     
     return datasets
-
 
 
 def import_consumption_profiles(raw_data):
@@ -969,6 +987,7 @@ def split_avail_cand(raw_data, dataset):
             )
         )
 
+    
     return (
         train_val_data,
         spatial_test_data,

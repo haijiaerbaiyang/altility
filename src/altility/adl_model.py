@@ -26,7 +26,10 @@ class ADL_model:
     
         ### Parameters
         self.name = name
-        self.path_to_results = path_to_results
+        if path_to_results.endswith('/'):
+            self.path_to_results = path_to_results
+        else:
+            self.path_to_results = path_to_results + '/'
         
         ### Results
         

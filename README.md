@@ -312,7 +312,33 @@ in load_forecasting.py with the following parameter and return values:
     
 </table>
 
+
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Returns </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>datasets </b>: <br />  dict
+    </td>
+    <td>
+      A dictionary containing available and candidate data, that are stored with
+      the keys 'avail_data' and 'cand_data'. These are dictionaries themselves, 
+      and store variables under keys 'x_t', 'x_s', 'x_st' and 'y'. These stand 
+      for only time-variant features 'x_t', only space-variant features 'x_s', 
+      space- and time-variant features 'x_st' and labels 'y'.
+    </td>
+  </tr>
+  
+    
+</table>
+
+
 It can further be tested using Uber movement travel time data.
+
+
 
 
 
@@ -499,6 +525,5 @@ ADL_model.test_model(
     silent=False,
     plot=True
 )
-
 ```
 

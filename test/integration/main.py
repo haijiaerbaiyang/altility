@@ -7,7 +7,7 @@ import altility.adl_model as adl_model
 import altility.datasets.load_forecasting as load_forecasting
 import altility.datasets.travel_forecasting as travel_forecasting
 
-
+"""
 ###
 # Full example for forecasting travel times between single city zones ###
 ###
@@ -99,6 +99,7 @@ ADL_model.test_model(
 
 
 """
+
 ###
 # Full example for forecasting electric consumption of single buildings ###
 ###
@@ -113,14 +114,14 @@ datasets = load_forecasting.prep_load_forecasting_data(
 ### Get features and labels for available data
 y = datasets['avail_data']['y']
 x_t = datasets['avail_data']['x_t']
-x_s = datasets['avail_data']['x_s1']
+x_s = datasets['avail_data']['x_s']
 x_st = datasets['avail_data']['x_st']
 
 
 ### Get features and labels for candidate data from spatio-temporal test set
 y_cand = datasets['cand_data']['y']
 x_t_cand = datasets['cand_data']['x_t']
-x_s_cand = datasets['cand_data']['x_s1']
+x_s_cand = datasets['cand_data']['x_s']
 x_st_cand = datasets['cand_data']['x_st']
 
 
@@ -188,4 +189,3 @@ ADL_model.test_model(
     silent=False,
     plot=True
 )
-"""
