@@ -25,8 +25,8 @@ class ADL_model:
     ):
     
         ### Parameters
-        self.name = 'undisputed'
-        self.path_to_results = 'results/'
+        self.name = name
+        self.path_to_results = path_to_results
         
         ### Results
         

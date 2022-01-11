@@ -1,6 +1,6 @@
-Altility stands for 'actively learning utility'. Originally, we developed this to 
-help electric utilities in the process of placing new smart meters in space and 
-collecting their data at different times. However, this package can now be used
+The name altility stands for 'actively learning utility', and was first developed
+to help electric utilities in the process of placing new smart meters in space and 
+collecting their data at different times. This package, however, can now be used
 for any type of spatio-temporal prediction task.
 
 
@@ -26,9 +26,10 @@ docker run -it -p 3333:1111 -v ~/path_to_data/data:/data aryandoustarsam/altilit
 
 
 ### Usage guide:
-At the core of altility stands the class **altility.ADL_model**. It bundles properties
-and methods of the active deep learning (ADL) model that we want to train. Bellow
-is a list of all parameters, methods and generated results.
+At the core of the altility package stands the class **altility.ADL_model**. It 
+bundles properties and methods of the active deep learning (ADL) model that we 
+want to train. Bellow is a list of all parameters it takes when initialized, methods 
+it contains and results it can generate.
 
 <table>
 
@@ -41,7 +42,16 @@ is a list of all parameters, methods and generated results.
       <b>name (='adl_model')</b>: <br />  string
     </td>
     <td>
-      The name of active deep learning (ADL) model
+      The name of active deep learning (ADL) model.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>path_to_results (='results')</b>: <br />  string
+    </td>
+    <td>
+      The path to where resulting plots and values are supposed to be stored.
     </td>
   </tr> 
     
@@ -102,8 +112,9 @@ is a list of all parameters, methods and generated results.
 
 
 ### Datasets:
-The package can be tested with a public dataset for making spatio-temporal predictions
-of electric load that we provide in our Github repository. To prepare the data
+The package can be tested on datasets that are either publicly available, or which
+we make public for making spatio-temporal predictions. A first dataset consists of 
+electric load that we provide in our Github repository. To prepare the data
 for usage with altility, use the **prep_load_forecasting_data()** function provided
 in load_forecasting.py with the following parameter and return values:
 
