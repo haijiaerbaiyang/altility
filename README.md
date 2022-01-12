@@ -163,6 +163,35 @@ it contains and results it can generate.
 </table>
 
 
+### Methods:
+
+** ADL_model.initialize()**
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Parameters </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>y (required)</b>: <br /> numpy array
+    </td>
+    <td>
+      Labels.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_t (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Time-variant features.
+    </td>
+  </tr> 
+    
+</table>
+
 ### Datasets:
 The package can be tested on datasets that are either publicly available, or which
 we make public for making spatio-temporal predictions. A first dataset consists of 
