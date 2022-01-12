@@ -111,36 +111,6 @@ it contains and results it can generate.
   
   <tr> 
     <td>
-      <b>models</b>: <br /> list of Tensorflow models
-    </td>
-    <td>
-      List of computational graphs that compound our active deep learning embedding
-      network. Created when calling <b>ADL_model.initialize()</b>.
-    </td>
-  </tr>
-  
-  <tr> 
-    <td>
-      <b>batch_index_list</b>: <br /> list of integers
-    </td>
-    <td>
-      List of indices for most informative data points suggested to collect.
-      Created when calling <b>ADL_model.collect()</b>.
-    </td>
-  </tr>
-  
-  <tr> 
-    <td>
-      <b>inf_score_list</b>: <br /> list of floats
-    </td>
-    <td>
-      List of information scores for most informative data points suggested to 
-      collect. Created when calling <b>ADL_model.collect()</b>.
-    </td>
-  </tr>
-  
-  <tr> 
-    <td>
       <b>predictions</b>: <br /> list of floats
     </td>
     <td>
@@ -164,6 +134,7 @@ it contains and results it can generate.
 
 ### Methods:
 
+A complete lits of key word arguments or parameters that can be passed to
 **ADL_model.initialize()**
 <table>
 
@@ -482,6 +453,150 @@ it contains and results it can generate.
     <td>
       List of computational graphs that compound our active deep learning embedding
       network.
+    </td>
+  </tr>
+    
+</table>
+
+
+A complete lits of key word arguments or parameters that can be passed to
+**ADL_model.collect()**
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Parameters </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_t_cand (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of time-variant features for candidate data points.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_s_cand (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-variant features for candidate data points.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_st_cand (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-time-variant features for candidate data points.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>budget (=0.5)</b>: <br /> float
+    </td>
+    <td>
+      Choose which share of candidate data pool we want to select. This is our
+      data budget for new querying new data points. Choose a value between 0 and
+      1.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>method (='embedding_uncertainty')</b>: <br /> string
+    </td>
+    <td>
+      Choose which active learning method to use. Currently, only queries with
+      embedding uncertainty are supported.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>method_variant (='max_uncertainty')</b>: <br /> string
+    </td>
+    <td>
+      Choose which variant of the active learning method to use. Choose from
+      'max_uncertainty', 'min_uncertainty', 'avg_uncertainty' and 'rnd_uncertainty'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>method_distance (='laplacian_kernel')</b>: <br /> string
+    </td>
+    <td>
+      Choose which distance metric to use for calculating embedding uncertainty
+      to cluster centers. Choose from 'rbf_kernel', 'laplacian_kernel' and 
+      'cosine_similarity'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>method_cluster (='KMeans')</b>: <br /> string
+    </td>
+    <td>
+      Choose which clusting method to use for clusting embedded candidate data
+      points. Choose from 'rbf_kernel', 'laplacian_kernel' and 'cosine_similarity'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>subsample (=None)</b>: <br /> int
+    </td>
+    <td>
+      Choose None or a subsample size of uniformly chosen candidates.
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>silent (=True)</b>: <br /> bool
+    <td>
+      Decide whether or not to print out progress.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>plot (=False)</b>: <br /> bool
+    <td>
+      Decide whether or not to visualize process.
+    </td>
+    </td>
+  </tr>
+  
+</table>
+
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Results </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>batch_index_list</b>: <br /> list of integers
+    </td>
+    <td>
+      List of indices for most informative data points suggested to collect.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>inf_score_list</b>: <br /> list of floats
+    </td>
+    <td>
+      List of information scores for most informative data points suggested to 
+      collect.
     </td>
   </tr>
     
