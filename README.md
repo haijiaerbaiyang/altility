@@ -103,33 +103,6 @@ it contains and results it can generate.
     
 </table>
 
-<table>
-
-  <tr>
-    <th scope='row' colspan='2'> Results </th>
-  </tr>
-  
-  <tr> 
-    <td>
-      <b>predictions</b>: <br /> list of floats
-    </td>
-    <td>
-      List of predictions made for passed features. Created when calling 
-      <b>ADL_model.predict()</b>.
-    </td>
-  </tr>
-  
-  <tr> 
-    <td>
-      <b>testing_loss</b>: <br /> float
-    </td>
-    <td>
-      Testing loss score calculated from true vs. predicted labels. Only calculated
-      if true labels <b>'y_pred'</b> are provided when calling <b>ADL_model.predict()</b>.
-    </td>
-  </tr>
-    
-</table>
 
 
 ### Methods:
@@ -602,6 +575,182 @@ A complete lits of key word arguments or parameters that can be passed to
     
 </table>
 
+
+A complete lits of key word arguments or parameters that can be passed to
+**ADL_model.train()**
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Parameters </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>y_picked (required)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of labels.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_t_picked (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of time-variant features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_s_picked (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-variant features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_st_picked (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-time-variant features.
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>silent (=True)</b>: <br /> bool
+    <td>
+      Decide whether or not to print out progress.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>plot (=False)</b>: <br /> bool
+    <td>
+      Decide whether or not to visualize process.
+    </td>
+    </td>
+  </tr>
+  
+</table>
+
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Results </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>models</b>: <br /> list of Tensorflow models
+    </td>
+    <td>
+      List of computational graphs that compound our active deep learning embedding
+      network further trained on the passed dataset of picked candidate data.
+    </td>
+  </tr>
+    
+</table>
+
+
+A complete lits of key word arguments or parameters that can be passed to
+**ADL_model.predict()**
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Parameters </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>y_pred (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of labels.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_t_pred (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of time-variant features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_s_pred (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-variant features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_st_pred (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-time-variant features.
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>silent (=True)</b>: <br /> bool
+    <td>
+      Decide whether or not to print out progress.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>plot (=False)</b>: <br /> bool
+    <td>
+      Decide whether or not to visualize process.
+    </td>
+    </td>
+  </tr>
+  
+</table>
+
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Results </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>predictions</b>: <br /> list of floats
+    </td>
+    <td>
+      List of predictions made for passed features. 
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>testing_loss</b>: <br /> float
+    </td>
+    <td>
+      Testing loss score calculated from true vs. predicted labels. Only calculated
+      if true labels <b>'y_pred'</b> are provided.
+    </td>
+  </tr>
+    
+</table>
+
+
 ### Datasets:
 The package can be tested on datasets that are either publicly available, or which
 we make public for making spatio-temporal predictions. A first dataset consists of 
@@ -940,6 +1089,8 @@ altility, use the **prep_travel_forecasting_data()** function provided in
   </tr>
     
 </table>
+
+
 
 
 ### Examples:
