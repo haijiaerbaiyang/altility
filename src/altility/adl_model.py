@@ -15,7 +15,8 @@ from sklearn.preprocessing import OrdinalEncoder
 
 class ADL_model:
 
-    """
+    """ Class that boundles all parameters, methods and results for performing
+    active learning.
     """
     
     def __init__(
@@ -30,9 +31,6 @@ class ADL_model:
             self.path_to_results = path_to_results
         else:
             self.path_to_results = path_to_results + '/'
-        
-        ### Results
-        
         
         if not os.path.exists(path_to_results):
             os.mkdir(path_to_results)
@@ -74,7 +72,10 @@ class ADL_model:
         plot=False
     ):
     
-        """
+        """ Initializes parameters passed to model as class attributes and calls
+        methods for creating modular deep learning model (embedding network),
+        splitting data into training and validation sets, and training embedding
+        network prediction model.
         """
         
         ### Set all parameters as attributes of class:
@@ -125,7 +126,9 @@ class ADL_model:
         plot=False,
     ):    
           
-        """
+        """ Trains embedding network prediction model with passed data. Note:
+        It does not split the passed data into training and validation sets, but
+        rather uses the validation data created when calling ADL_model.initialize().
         """
         
         self.y_train = y_picked
@@ -136,10 +139,12 @@ class ADL_model:
         self.plot = plot
         
         self.train_model(fig_name='train_vs_val_adl')
-                        
+        
+        
     def create_prediction_model(self):
     
-        """
+        """ Creates the deep learning models that compound our modular computational
+        graph (embedding network).
         """
         
         ### Set initialization methods
@@ -154,8 +159,6 @@ class ADL_model:
                 gain=1.0, 
                 seed=self.random_seed
             )
-            
-        
         
         if not self.silent:
             # tell us what we do
@@ -491,9 +494,9 @@ class ADL_model:
             
             
     def split_train_val(self):
-        """
+    
+        """ Splits available data into training and validation sets.
         """     
-        
         
         ###
         # Split remaining into training and validation datasets using intervals ###
@@ -535,7 +538,8 @@ class ADL_model:
             self.x_st = 0
         
     def f_randomize(self, data):
-        """
+    
+        """ Randomizes data order for training and validation.
         """
         
         # randomize training data
@@ -572,7 +576,7 @@ class ADL_model:
         
     def create_batched_data(self, data, i):
 
-        """ 
+        """ Creates data batches for training and validation.
         """
 
         if data == 'train':
@@ -655,7 +659,7 @@ class ADL_model:
         self, 
         fig_name='training'
     ):
-        """
+        """ Functions for training and validating model.
         """
         
         if self.silent:
@@ -852,7 +856,7 @@ class ADL_model:
         
     def encode_features(self):
 
-        """ 
+        """ Encodes features using modules of embedding network.
         """
 
         if not self.silent:
@@ -927,7 +931,7 @@ class ADL_model:
         
     def compute_clusters(self):
 
-        """
+        """ Computes clusters in feature embedded vector space.
         """
 
         if not self.silent:
@@ -965,7 +969,7 @@ class ADL_model:
         
     def compute_similarity(self):
 
-        """
+        """ Compute similarity score of candidates to cluster centers.
         """
 
         # set the number of encoded data points
@@ -1018,7 +1022,7 @@ class ADL_model:
         plot=False
     ):
     
-        """
+        """ Perform pool-based active learning using embedding uncertainty.
         """
         
         self.x_t_cand = x_t_cand
@@ -1141,7 +1145,7 @@ class ADL_model:
         plot=False,
     ):
 
-        """ 
+        """ Predict unqueried candidates.
         """
         
         def plot_true_vs_prediction(test_data_Y, predictions):
