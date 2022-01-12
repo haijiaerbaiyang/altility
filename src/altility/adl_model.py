@@ -12,25 +12,28 @@ from sklearn.metrics.pairwise import laplacian_kernel
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import OrdinalEncoder
 
+
 class ADL_model:
 
-    """
+    """ Class that boundles all parameters, methods and results for performing
+    active learning.
     """
     
     def __init__(
         self,
         name='adl_model',
+        path_to_results='results/'
     ):
     
         ### Parameters
-        self.name = 'undisputed'
+        self.name = name
+        if path_to_results.endswith('/'):
+            self.path_to_results = path_to_results
+        else:
+            self.path_to_results = path_to_results + '/'
         
-        
-        ### Attributes
-        
-        
-        ### Results
-        
+        if not os.path.exists(path_to_results):
+            os.mkdir(path_to_results)
     
     ### Methods 
         
@@ -69,7 +72,10 @@ class ADL_model:
         plot=False
     ):
     
-        """
+        """ Initializes parameters passed to model as class attributes and calls
+        methods for creating modular deep learning model (embedding network),
+        splitting data into training and validation sets, and training embedding
+        network prediction model.
         """
         
         ### Set all parameters as attributes of class:
@@ -108,13 +114,37 @@ class ADL_model:
         ### Call methods
         self.create_prediction_model()
         self.split_train_val()
-        self.train_model()
+        self.train_model(fig_name='train_vs_val_initial')
         
+    def train(
+        self,
+        y_picked,
+        x_t_picked=None,
+        x_s_picked=None,
+        x_st_picked=None,
+        silent=True,
+        plot=False,
+    ):    
+          
+        """ Trains embedding network prediction model with passed data. Note:
+        It does not split the passed data into training and validation sets, but
+        rather uses the validation data created when calling ADL_model.initialize().
+        """
+        
+        self.y_train = y_picked
+        self.x_t_train = x_t_picked
+        self.x_s_train = x_s_picked
+        self.x_st_train = x_st_picked
+        self.silent = silent
+        self.plot = plot
+        
+        self.train_model(fig_name='train_vs_val_adl')
         
         
     def create_prediction_model(self):
     
-        """
+        """ Creates the deep learning models that compound our modular computational
+        graph (embedding network).
         """
         
         ### Set initialization methods
@@ -129,8 +159,6 @@ class ADL_model:
                 gain=1.0, 
                 seed=self.random_seed
             )
-            
-        
         
         if not self.silent:
             # tell us what we do
@@ -416,7 +444,7 @@ class ADL_model:
         if self.batch_normalization:
             joining_layer = tf.keras.layers.BatchNormalization()(joining_layer)
             
-        X_joint_encoder = tf.keras.Model(inputs=input_list, outputs=joining_layer)
+        x_joint_encoder = tf.keras.Model(inputs=input_list, outputs=joining_layer)
         
         
         ### Create total prediction model ###
@@ -446,14 +474,16 @@ class ADL_model:
         )
 
         # create class instance for encoding and prediction models
-        models = {
-            'x_t_encoder': x_t_encoder, 
-            'x_s_encoder': x_s_encoder, 
-            'x_st_encoder': x_st_encoder, 
-            'x_joint_encoder': X_joint_encoder, 
-            'f_nn': f_nn
-        }
-
+        models = {}
+        if self.x_t is not None:
+            models['x_t_encoder'] = x_t_encoder
+        if self.x_s is not None:
+            models['x_s_encoder'] = x_s_encoder
+        if self.x_st is not None:
+            models['x_st_encoder'] = x_st_encoder
+        models['x_joint_encoder'] = x_joint_encoder
+        models['f_nn'] = f_nn
+        
         self.models = models
         
         # give us the summary of the total prediction model that we define
@@ -464,9 +494,9 @@ class ADL_model:
             
             
     def split_train_val(self):
-        """
+    
+        """ Splits available data into training and validation sets.
         """     
-        
         
         ###
         # Split remaining into training and validation datasets using intervals ###
@@ -508,7 +538,8 @@ class ADL_model:
             self.x_st = 0
         
     def f_randomize(self, data):
-        """
+    
+        """ Randomizes data order for training and validation.
         """
         
         # randomize training data
@@ -545,7 +576,7 @@ class ADL_model:
         
     def create_batched_data(self, data, i):
 
-        """ 
+        """ Creates data batches for training and validation.
         """
 
         if data == 'train':
@@ -623,8 +654,12 @@ class ADL_model:
 
         return model_input_list, y_batched
         
-    def train_model(self):
-        """
+        
+    def train_model(
+        self, 
+        fig_name='training'
+    ):
+        """ Functions for training and validating model.
         """
         
         if self.silent:
@@ -810,13 +845,18 @@ class ADL_model:
             plt.legend(['training', 'validation'], loc='upper left')
             plt.show()
             
+            # save figure
+            file_name = fig_name +'.pdf'
+            saving_path = self.path_to_results + file_name
+            plt.savefig(saving_path)
+            
             
         self.train_loss_history = train_loss_history
         self.val_loss_history = val_loss_history
         
     def encode_features(self):
 
-        """ 
+        """ Encodes features using modules of embedding network.
         """
 
         if not self.silent:
@@ -856,8 +896,24 @@ class ADL_model:
         ):
             model = self.models['x_joint_encoder']
             self.encoding = model.predict([x_t, x_s, x_st])
-        
-            
+        elif (
+            self.x_t_cand is not None and 
+            self.x_s_cand is not None
+        ):
+            model = self.models['x_joint_encoder']
+            self.encoding = model.predict([x_t, x_s])
+        elif (
+            self.x_t_cand is not None and 
+            self.x_st_cand is not None
+        ):
+            model = self.models['x_joint_encoder']
+            self.encoding = model.predict([x_t, x_st])
+        elif (
+            self.x_s_cand is not None and 
+            self.x_st_cand is not None
+        ):
+            model = self.models['x_joint_encoder']
+            self.encoding = model.predict([x_s, x_st])
         elif self.x_st_cand is not None:
             model = self.models['x_st_encoder']
             self.encoding = model.predict(x_st)
@@ -875,7 +931,7 @@ class ADL_model:
         
     def compute_clusters(self):
 
-        """
+        """ Computes clusters in feature embedded vector space.
         """
 
         if not self.silent:
@@ -913,7 +969,7 @@ class ADL_model:
         
     def compute_similarity(self):
 
-        """
+        """ Compute similarity score of candidates to cluster centers.
         """
 
         # set the number of encoded data points
@@ -966,7 +1022,7 @@ class ADL_model:
         plot=False
     ):
     
-        """
+        """ Perform pool-based active learning using embedding uncertainty.
         """
         
         self.x_t_cand = x_t_cand
@@ -1077,3 +1133,117 @@ class ADL_model:
         # Save results
         self.batch_index_list = batch_index_list
         self.inf_score_list = inf_score_list
+        
+        
+    def predict(
+        self,
+        y_pred=None,
+        x_t_pred=None,
+        x_s_pred=None,
+        x_st_pred=None,
+        silent=True,
+        plot=False,
+    ):
+
+        """ Predict labels for unqueried candidate data.
+        """
+        
+        def plot_true_vs_prediction(test_data_Y, predictions):
+
+            """ Visualizes predictions vs. true values. """
+
+            plot_rows = 3
+            plot_clos = 3
+
+            # create a matplotlib.pyplot.subplots figure
+            fig, ax = plt.subplots(plot_rows, plot_clos, figsize=(16, 16))
+
+            # set the figtitle
+            fig.suptitle('True vs. predicted', fontsize=16)
+
+            # pick at random a set of integers for visualization
+            data_indices = np.random.randint(
+                0, 
+                len(test_data_Y), 
+                plot_rows * plot_clos
+            )
+
+            # create a variable for iteratively adding number of subplots
+            subplot_counter = 0
+
+            # iterate over number of rows
+            for i in range(plot_rows):
+
+                # iterate over number of columns
+                for j in range(plot_clos):
+
+                    # choose currently iterated random index
+                    data_index = data_indices[subplot_counter]
+
+                    # plot the true values
+                    plot1 = ax[i, j].plot(test_data_Y[data_index])
+
+                    # plot the predicted values
+                    plot2 = ax[i, j].plot(predictions[data_index])
+
+                    # increment the subplot_counter
+                    subplot_counter += 1
+
+            # add a figure legend
+            fig.legend(
+                [plot1, plot2],
+                labels=['true', 'predicted'],
+                fontsize=16,
+            )
+            
+            # save figure
+            file_name = 'true_vs_pred_cand.pdf'
+            saving_path = self.path_to_results + file_name
+            fig.savefig(saving_path)
+
+        ### Reset the state of the test loss metric
+        loss_function = tf.keras.losses.mean_squared_error
+        mean_loss = tf.keras.metrics.Mean(name='mean_loss_train_test')
+        mean_loss.reset_states()
+
+
+        ### Make predictions
+        model = self.models['f_nn']
+        model_input_list = []
+        if self.x_t is not None:
+            model_input_list.append(x_t_pred)
+        if self.x_s is not None:
+            model_input_list.append(x_s_pred)
+        if self.x_st is not None:
+            model_input_list.append(x_st_pred)
+        predictions = model.predict(model_input_list)
+        
+        self.silent = silent
+        self.plot = plot
+
+        ###
+        # Calculate the testing loss ###
+        ###
+        
+        if y_pred is not None:
+            # calculate the testing losses
+            t_loss = loss_function(y_pred, predictions)
+
+            # take the mean of single losses
+            testing_loss = mean_loss(t_loss).numpy()
+
+            # tell us how much testing loss we have
+            if not self.silent:
+            
+                print('loss:', testing_loss)
+                
+            # Plot exemplar predictions
+            if self.plot:
+                plot_true_vs_prediction(y_pred, predictions)
+
+        else:
+            testing_loss = None
+            
+        self.predictions = predictions
+        self.testing_loss = testing_loss
+        

@@ -42,10 +42,16 @@ def prep_load_forecasting_data(
     standardization=True,
     silent=True,
     plot=False,
-    ):
+):
 
+    """ Imports data, creates feature-label pairs, normalizes data, splits it into
+    available data for training and validation, as well as into candidate data
+    consisting of spatial, temporal and spatio-temporal prediction tasks. After
+    splitting data, it is standardized.
     """
-    """
+    
+    
+    ### Create all required paths to where chosen data is stored
     path_to_data += dataset_name
     profile_years = ['2014']
     path_to_building_year_profile_folder = (
@@ -62,7 +68,7 @@ def prep_load_forecasting_data(
         path_to_data 
         + '/meteo data/'
     )
-    
+
     if spatial_features == 'histogram':
           path_to_aerial_imagery_folder += 'histogram/'
     elif spatial_features == 'average':
@@ -74,8 +80,9 @@ def prep_load_forecasting_data(
     else:
         path_to_aerial_imagery_folder += 'rgb/'
         n_channels = 3
-        
     
+    
+    ### Save all parameters in dictionary
     raw_data = {
         'path_to_data': path_to_data,
         'profile_years': profile_years,
@@ -95,69 +102,84 @@ def prep_load_forecasting_data(
         'time_encoding': time_encoding,
         'test_split': test_split,
         'normalization': normalization,
-        'standardization': standardization
+        'standardization': standardization,
+        'silent': silent,
+        'plot': plot
     }
     
-    raw_data = import_consumption_profiles(raw_data, silent=silent, plot=plot)
-    raw_data = import_building_images(raw_data, silent=silent)
-    raw_data = import_meteo_data(raw_data, silent=silent, plot=plot)
-    dataset, raw_data = create_feature_label_pairs(raw_data, silent=silent)
-    dataset = encode_time_features(raw_data, dataset, silent=silent)
-    dataset = normalize_features(raw_data, dataset, silent=silent)
+    
+    ### Import data
+    raw_data = import_consumption_profiles(raw_data)
+    raw_data = import_building_images(raw_data)
+    raw_data = import_meteo_data(raw_data)
+    
+    
+    ### Pair features and labels
+    dataset, raw_data = create_feature_label_pairs(raw_data)
+    
+    
+    ### Encode temporal features
+    dataset = encode_time_features(raw_data, dataset)
+    
+    
+    ### Normalize all data
+    dataset = normalize_features(raw_data, dataset)
+    
+    
+    ### Split data into train_val and various testing datasets
     (
-        avail_data, 
+        train_val_data, 
         cand_data_spatial, 
         cand_data_temporal, 
         cand_data_spatemp
-    ) = split_avail_cand(raw_data, dataset, silent=silent)
+    ) = split_avail_cand(raw_data, dataset)
     
-
+    
+    ### Standardize features
     cand_data_spatial = standardize_features(
         raw_data, 
         cand_data_spatial, 
-        avail_data, 
-        silent=silent
+        train_val_data
     )
     cand_data_temporal = standardize_features(
         raw_data, 
         cand_data_temporal, 
-        avail_data, 
-        silent=silent
+        train_val_data
     )
     cand_data_spatemp = standardize_features(
         raw_data, 
         cand_data_spatemp, 
-        avail_data, 
-        silent=silent
+        train_val_data
     )
-    avail_data = standardize_features(
+    train_val_data = standardize_features(
         raw_data, 
-        avail_data, 
-        avail_data, 
-        silent=silent
+        train_val_data, 
+        train_val_data
     )
     
-    datasets = (
-        avail_data, 
-        cand_data_spatial, 
-        cand_data_temporal, 
-        cand_data_spatemp
-    )
+    
+    ### simplify return datasets by removing x_s and only giving x_s1
+    train_val_data['x_s'] = train_val_data['x_s1']
+    cand_data_spatemp['x_s'] = cand_data_spatemp['x_s1']
+    del train_val_data['x_s1']
+    del cand_data_spatemp['x_s1']
+    
+    
+    ### Create return datasets
+    datasets = {
+        'avail_data': train_val_data, 
+        'cand_data': cand_data_spatemp
+    }
     
     return datasets
 
 
+def import_consumption_profiles(raw_data):
 
-def import_consumption_profiles(
-    raw_data,
-    silent=True,
-    plot=False
-):
-
-    """
+    """ Imports building-scale electric consumption ground truth data.
     """
     
-    if not silent:
+    if not raw_data['silent']:
         # tell us what we are doing
         print('Importing consumption profiles')
 
@@ -245,7 +267,7 @@ def import_consumption_profiles(
         # accumulate the memory demand of building-year profiles we imported
         memory_demand_GB = memory_demand_GB + df.memory_usage().sum() * 1e-9
         
-        if not silent:
+        if not raw_data['silent']:
             # increment the progress bar
             progbar.add(1)
             
@@ -271,7 +293,7 @@ def import_consumption_profiles(
     raw_data['cluster_year_set'] = cluster_year_set
 
     # Tell us how much RAM we are occupying with the just imported profiles
-    if not silent:
+    if not raw_data['silent']:
         print(
             'The',
             len(building_id_list),
@@ -280,7 +302,7 @@ def import_consumption_profiles(
             'GB of RAM',
         )
 
-    if plot:
+    if raw_data['plot']:
 
         # set the number of subplots to the minimum of the desired value and the  
         # actually available profiles for plotting
@@ -296,15 +318,12 @@ def import_consumption_profiles(
         
     return raw_data
     
-def import_building_images(
-    raw_data, 
-    silent=False
-):
+def import_building_images(raw_data):
 
-    """ 
+    """ Imports histogram values of building image pixels.
     """
 
-    if not silent:
+    if not raw_data['silent']:
 
         # tell us what we do
         print('Importing building-scale aerial imagery:')
@@ -354,7 +373,7 @@ def import_building_images(
         building_imagery_data_list.append(imagery_pixel_data)
         building_imagery_id_list.append(int(building_id))
 
-        if not silent:
+        if not raw_data['silent']:
 
             # Accumulate the memory demand of each image
             memory_demand_GB += imagery_pixel_data.nbytes * 1e-9
@@ -363,7 +382,7 @@ def import_building_images(
             progbar.add(1)
 
 
-    if not silent:
+    if not raw_data['silent']:
 
         # Tell us how much RAM we occupy with the just imported data files
         print(
@@ -381,16 +400,12 @@ def import_building_images(
     return raw_data
     
 
-def import_meteo_data(
-    raw_data, 
-    silent=False, 
-    plot=True
-):
+def import_meteo_data(raw_data):
 
-    """ 
+    """ Imports space-time variant meteorological data.
     """
 
-    if not silent:
+    if not raw_data['silent']:
 
         # tell us what we do
         print('Importing meteorological data')
@@ -448,7 +463,7 @@ def import_meteo_data(
         # increment
         counter += 1
 
-        if not silent:
+        if not raw_data['silent']:
             # Accumulate the memory demand of each file
             memory_demand_GB += df.memory_usage().sum() * 1e-9
 
@@ -458,7 +473,7 @@ def import_meteo_data(
     raw_data['meteo_data_list'] = meteo_data_list
     raw_data['meteo_data_cluster_year_array'] = meteo_data_cluster_year_array
 
-    if not silent:
+    if not raw_data['silent']:
 
         # Tell us how much RAM we occupy with the just imported data files
         print(
@@ -469,7 +484,7 @@ def import_meteo_data(
             'GB RAM',
         )
 
-    if plot:
+    if raw_data['plot']:
 
         # plot the time series data for each metering code
         _ = df.plot(
@@ -485,12 +500,9 @@ def import_meteo_data(
     return raw_data    
     
     
-def create_feature_label_pairs(
-    raw_data, 
-    silent=True
-):
+def create_feature_label_pairs(raw_data):
 
-    """
+    """ Pairs features and labels.
     """
 
     # determine start and end of iteration over each paired dataframe
@@ -510,21 +522,21 @@ def create_feature_label_pairs(
     n_datapoints = len(raw_data['building_id_list']) * points_per_profile
 
     # Create empty arrays in the right format for saving features and labels
-    X_t = np.zeros((n_datapoints, 5))
-    X_st = np.zeros(
+    x_t = np.zeros((n_datapoints, 5))
+    x_st = np.zeros(
         (
             n_datapoints, 
             raw_data['history_window_meteo'], 
             len(raw_data['meteo_types'])
         )
     )
-    X_s = np.zeros((n_datapoints, 2))
-    Y = np.zeros((n_datapoints, raw_data['prediction_window']))
+    x_s = np.zeros((n_datapoints, 2))
+    y = np.zeros((n_datapoints, raw_data['prediction_window']))
 
     # create a datapoint counter to increment and add to the data entries
     datapoint_counter = 0
 
-    if not silent:
+    if not raw_data['silent']:
 
         # tell us what we do
         print('Creating feature label data pairs:')
@@ -586,21 +598,21 @@ def create_feature_label_pairs(
                 )
 
                 # Add the features and labels to respective data point entry
-                X_t[datapoint_counter, :] = [minute_15, hour, day, month, year]
-                X_s[datapoint_counter, :] = [building_id, cluster_id]
-                X_st[datapoint_counter, :, :] = meteo
-                Y[datapoint_counter, :] = label
+                x_t[datapoint_counter, :] = [minute_15, hour, day, month, year]
+                x_s[datapoint_counter, :] = [building_id, cluster_id]
+                x_st[datapoint_counter, :, :] = meteo
+                y[datapoint_counter, :] = label
 
                 # increment datapoint counter
                 datapoint_counter += 1
 
-        if not silent:
+        if not raw_data['silent']:
 
             # increment progress bar
             progbar.add(points_per_profile * len(building_id_subset))
 
 
-    ### Shorten X_t according to chosen TIMESTAMP_DATA ###
+    ### Shorten x_t according to chosen TIMESTAMP_DATA ###
 
     # create empty list
     filter_list = []
@@ -623,24 +635,23 @@ def create_feature_label_pairs(
         filter_list.append(4)
 
     # delete the columns according to created filter_list
-    X_t = np.delete(X_t, filter_list, 1)
+    x_t = np.delete(x_t, filter_list, 1)
 
     # get the minimum value for labels
-    raw_data['Y_min'] = Y.min()
+    raw_data['y_min'] = y.min()
 
     # get the maximum value for labels
-    raw_data['Y_max'] = Y.max()
+    raw_data['y_max'] = y.max()
 
     # get the full range of possible values
-    raw_data['Y_range'] = raw_data['Y_max'] - raw_data['Y_min']
+    raw_data['y_range'] = raw_data['y_max'] - raw_data['y_min']
 
     # bundle data as dataset object and return
     dataset = {
-        'X_t': X_t,
-        'X_s': X_s,
-        'X_st': X_st,
-        'Y': Y,
-        'n_datapoints':len(X_t)
+        'x_t': x_t,
+        'x_s': x_s,
+        'x_st': x_st,
+        'y': y,
     }
 
     ### Process spatial features ###
@@ -666,10 +677,10 @@ def create_feature_label_pairs(
 
             df_list[channel].iloc[index, 0] = building_id
 
-    # create empty X_s1
-    dataset['X_s1'] = np.zeros(
+    # create empty x_s1
+    dataset['x_s1'] = np.zeros(
         (
-            dataset['n_datapoints'], 
+            len(dataset['y']), 
             image.shape[0], 
             image.shape[1]
         )
@@ -678,9 +689,9 @@ def create_feature_label_pairs(
     # iterate over number of channels
     for i in range(raw_data['n_channels']):
 
-        # merge the columns of building ID in X_s and the new dataframe
+        # merge the columns of building ID in x_s and the new dataframe
         paired_df = pd.DataFrame(
-            dataset['X_s'], 
+            dataset['x_s'], 
             columns=['building id', 'cluster id']
         ).merge(
             df_list[i], 
@@ -688,25 +699,22 @@ def create_feature_label_pairs(
             how='left'
         )
 
-        # pass the paired values to X_s1
-        dataset['X_s1'][:, :, i] = paired_df.iloc[:, 2:].values
+        # pass the paired values to x_s1
+        dataset['x_s1'][:, :, i] = paired_df.iloc[:, 2:].values
 
     return dataset, raw_data
     
-def encode_time_features(
-    raw_data,
-    dataset,
-    silent=True
-):
+    
+def encode_time_features(raw_data, dataset):
 
-    """ 
+    """ Gives you one-hot encoded time stamps if chosen so.
     """
 
-    if not silent:
+    if not raw_data['silent']:
 
         # tell us what we do
         print('Encoding temporal features')
-        print('X_t before:', dataset['X_t'][0])
+        print('x_t before:', dataset['x_t'][0])
 
 
     ###
@@ -716,52 +724,43 @@ def encode_time_features(
     # get OrdinalEncoder from sklearn.preprocessing
     enc = preprocessing.OrdinalEncoder()
 
-    # fit the encoder to X_t
-    enc.fit(dataset['X_t'])
+    # fit the encoder to x_t
+    enc.fit(dataset['x_t'])
 
-    # encode X_t
-    dataset['X_t'] = enc.transform(dataset['X_t']).astype(int)
+    # encode x_t
+    dataset['x_t'] = enc.transform(dataset['x_t']).astype(int)
 
-    # save the encoded feature categories for X_time
+    # save the encoded feature categories for x_time
     timestamp_categories = enc.categories_
-
-    # create empty matrix for saving number of categories of each feature column
-    n_time_categories = np.zeros((len(enc.categories_))).astype(int)
-
-    # iterate over each category array and save number of categories
-    for index, category_array in enumerate(enc.categories_):
-
-        # save number of respective category
-        n_time_categories[index] = len(category_array)
 
     ###
     # Create one dimensional ordinal encoding in 1-min steps ###
     ###
 
     # create an empty array for adding up values
-    dataset['X_t_ord_1D'] = np.zeros((dataset['n_datapoints'],))
-    X_t_copy = dataset['X_t']
+    dataset['x_t_ord_1D'] = np.zeros((len(dataset['y']),))
+    x_t_copy = dataset['x_t']
 
     # check for all possible entries
     if '15min' in raw_data['timestamp_data']:
-        dataset['X_t_ord_1D'] += X_t_copy[:, 0] * 15
-        X_t_copy = np.delete(X_t_copy, 0, 1)
+        dataset['x_t_ord_1D'] += x_t_copy[:, 0] * 15
+        x_t_copy = np.delete(x_t_copy, 0, 1)
 
     if 'hour' in raw_data['timestamp_data']:
-        dataset['X_t_ord_1D'] += X_t_copy[:, 0] * 60
-        X_t_copy = np.delete(X_t_copy, 0, 1)
+        dataset['x_t_ord_1D'] += x_t_copy[:, 0] * 60
+        x_t_copy = np.delete(x_t_copy, 0, 1)
 
     if 'day' in raw_data['timestamp_data']:
-        dataset['X_t_ord_1D'] += X_t_copy[:, 0] * 60 * 24
-        X_t_copy = np.delete(X_t_copy, 0, 1)
+        dataset['x_t_ord_1D'] += x_t_copy[:, 0] * 60 * 24
+        x_t_copy = np.delete(x_t_copy, 0, 1)
 
     if 'month' in raw_data['timestamp_data']:
-        dataset['X_t_ord_1D'] += X_t_copy[:, 0] * 60 * 24 * 31
-        X_t_copy = np.delete(X_t_copy, 0, 1)
+        dataset['x_t_ord_1D'] += x_t_copy[:, 0] * 60 * 24 * 31
+        x_t_copy = np.delete(x_t_copy, 0, 1)
 
     if 'year' in raw_data['timestamp_data']:
-        dataset['X_t_ord_1D'] += X_t_copy[:, 0] * 60 * 24 * 31 * 12
-        X_t_copy = np.delete(X_t_copy, 0, 1)
+        dataset['x_t_ord_1D'] += x_t_copy[:, 0] * 60 * 24 * 31 * 12
+        x_t_copy = np.delete(x_t_copy, 0, 1)
 
     ###
     #  If chosen so, transform encoding here ###
@@ -773,37 +772,33 @@ def encode_time_features(
         enc = preprocessing.OneHotEncoder()
 
         # fit encoder
-        enc.fit(dataset['X_t'])
+        enc.fit(dataset['x_t'])
 
         # encode temporal features
-        dataset['X_t'] = enc.transform(dataset['X_t']).toarray().astype(int)
+        dataset['x_t'] = enc.transform(dataset['x_t']).toarray().astype(int)
 
     elif raw_data['time_encoding'] == 'ORD-1D':
 
-        # copy the 1D ordinal array to X_t
-        dataset['X_t'] = dataset['X_t_ord_1D']
+        # copy the 1D ordinal array to x_t
+        dataset['x_t'] = dataset['x_t_ord_1D']
 
         # expand the last dimension for NN input fit
-        dataset['X_t'] = np.expand_dims(dataset['X_t'], axis=1)
+        dataset['x_t'] = np.expand_dims(dataset['x_t'], axis=1)
 
-    if not silent:
+    if not raw_data['silent']:
 
-        print('X_t after: {} ({})'.format(dataset['X_t'][0], raw_data['time_encoding']))
+        print('x_t after: {} ({})'.format(dataset['x_t'][0], raw_data['time_encoding']))
 
     return dataset
     
-def normalize_features(
-    raw_data, 
-    dataset, 
-    silent=True
-):
+def normalize_features(raw_data, dataset):
 
-    """
+    """ Min max scales data.
     """
 
     if raw_data['normalization']:
 
-        if not silent:
+        if not raw_data['silent']:
         
             # tell us what we do
             print('Normalizing features')
@@ -811,134 +806,60 @@ def normalize_features(
         # get min-max scaler from the sklearn preprocessing package
         min_max_scaler = preprocessing.MinMaxScaler()
 
-        # normalize X_t in the case that it is not OHE
+        # normalize x_t in the case that it is not OHE
         if raw_data['time_encoding'] != 'OHE':
-            dataset['X_t'] = min_max_scaler.fit_transform(dataset['X_t'])
+            dataset['x_t'] = min_max_scaler.fit_transform(dataset['x_t'])
 
-        # normalize X_st
+        # normalize x_st
         for i in range(len(raw_data['meteo_types'])):
-            dataset['X_st'][:, :, i] = min_max_scaler.fit_transform(
-                dataset['X_st'][:, :, i]
+            dataset['x_st'][:, :, i] = min_max_scaler.fit_transform(
+                dataset['x_st'][:, :, i]
             )
 
-        # normalize X_s1
-        if raw_data['spatial_features'] != 'image':
-
-            for channel in range(raw_data['n_channels']):
-                dataset['X_s1'][:, :, channel] = min_max_scaler.fit_transform(
-                    dataset['X_s1'][:, :, channel]
-                )
+        # normalize x_s1
+        for channel in range(raw_data['n_channels']):
+            dataset['x_s1'][:, :, channel] = min_max_scaler.fit_transform(
+                dataset['x_s1'][:, :, channel]
+            )
 
     return dataset
   
-def split_avail_cand(
-    raw_data, 
-    dataset, 
-    silent=True
-):
+def split_avail_cand(raw_data, dataset):
 
-    """ 
+    """ Splits data into available and candidate datasets.
     """
 
-    if not silent:
+    if not raw_data['silent']:
         # tell us what we are doing
         print('Splitting data into training, validation and testing sets.')
-
-    ###
-    # Reduce memory demand ###
-    ###
-
-    dataset['X_t'] = np.float32(dataset['X_t'])
-    dataset['X_st'] = np.float32(dataset['X_st'])
-    dataset['Y'] = np.float32(dataset['Y'])
-    dataset['X_s'] = dataset['X_s'].astype(int)
-    dataset['X_s1'] = np.float32(dataset['X_s1'])
 
     ###
     # Sort arrays in ascending temporal order ###
     ###
 
-    sort_array = np.argsort(dataset['X_t_ord_1D'])
-    dataset['X_t'] = dataset['X_t'][sort_array]
-    dataset['X_s'] = dataset['X_s'][sort_array]
-    dataset['X_st'] = dataset['X_st'][sort_array]
-    dataset['Y'] = dataset['Y'][sort_array]
-    dataset['X_s1'] = dataset['X_s1'][sort_array]
+    sort_array = np.argsort(dataset['x_t_ord_1D'])
+    for key in dataset:
+        dataset[key] = dataset[key][sort_array]
 
     ###
     # Take away data from both ends of sorted arrays ###
     ###
 
     # get the number of datapoints to cut out for temporal prediction tests
-    split_point = math.ceil(raw_data['test_split'] / 2 * dataset['n_datapoints'])
-
-    ### extract data from beginning of temporaly sorted dataset ###
-    temporal_X_t_ord_1D = dataset['X_t_ord_1D'][:split_point]
-    dataset['X_t_ord_1D'] = dataset['X_t_ord_1D'][split_point:]
+    split_point = math.ceil(raw_data['test_split'] / 2 * len(dataset['y']))
     
-    temporal_X_t = dataset['X_t'][:split_point]
-    dataset['X_t'] = dataset['X_t'][split_point:]
-
-    temporal_X_s = dataset['X_s'][:split_point]
-    dataset['X_s'] = dataset['X_s'][split_point:]
-
-    temporal_X_st = dataset['X_st'][:split_point]
-    dataset['X_st'] = dataset['X_st'][split_point:]
-
-    temporal_Y = dataset['Y'][:split_point]
-    dataset['Y'] = dataset['Y'][split_point:]
-
-    temporal_X_s1 = dataset['X_s1'][:split_point]
-    dataset['X_s1'] = dataset['X_s1'][split_point:]
-
-    ### extract data from end of temporaly sorted dataset ###
-    temporal_X_t_ord_1D = np.concatenate(
-        (
-            temporal_X_t_ord_1D,
-            dataset['X_t_ord_1D'][-split_point:]
+    temporal_test_data = {}
+    for key in dataset:
+        temporal_test_data[key] = dataset[key][:split_point]
+        dataset[key] = dataset[key][split_point:]
+        temporal_test_data[key] = np.concatenate(
+            (
+                temporal_test_data[key], 
+                dataset[key][-split_point:]
+            )
         )
-    )
-    dataset['X_t_ord_1D'] = dataset['X_t_ord_1D'][:-split_point]
-    
-    temporal_X_t = np.concatenate(
-        (
-            temporal_X_t, 
-            dataset['X_t'][-split_point:]
-        )
-    )
-    dataset['X_t'] = dataset['X_t'][:-split_point]
+        dataset[key] = dataset[key][:-split_point]
 
-    temporal_X_s = np.concatenate(
-        (
-            temporal_X_s, 
-            dataset['X_s'][-split_point:]
-        )
-    )
-    dataset['X_s'] = dataset['X_s'][:-split_point]
-
-    temporal_X_st = np.concatenate(
-        (
-            temporal_X_st, 
-            dataset['X_st'][-split_point:]
-        )
-    )
-    dataset['X_st'] = dataset['X_st'][:-split_point]
-
-    temporal_Y = np.concatenate(
-        (
-            temporal_Y, 
-            dataset['Y'][-split_point:]
-        )
-    )
-    dataset['Y'] = dataset['Y'][:-split_point]
-
-    temporal_X_s1 = np.concatenate(
-        (
-            temporal_X_s1, 
-            dataset['X_s1'][-split_point:]
-        )
-    )
-    dataset['X_s1'] = dataset['X_s1'][:-split_point]
 
     ###
     # Set the remaining data as spatial dataset ###
@@ -958,89 +879,31 @@ def split_avail_cand(
     # transform building ID strings to integers
     test_building_samples = [int(x) for x in test_building_samples]
 
-    spatial_X_t_ord_1D = dataset['X_t_ord_1D']
-    dataset['X_t_ord_1D'] = 0
-    
-    spatial_X_t = dataset['X_t']
-    dataset['X_t'] = 0
+    spatial_test_data = {}
+    for key in dataset:
+        spatial_test_data[key] = dataset[key]
+        dataset[key] = 0
 
-    spatial_X_s = dataset['X_s']
-    dataset['X_s'] = 0
-
-    spatial_X_st = dataset['X_st']
-    dataset['X_st'] = 0
-
-    spatial_Y = dataset['Y']
-    dataset['Y'] = 0
-
-    spatial_X_s1 = dataset['X_s1']
-    dataset['X_s1'] = 0
 
     ###
     # Extract temporal and spatio-temporal test sets ###
     ###
 
     ### create the filtering array ###
-    boolean_filter_array = np.zeros((len(temporal_X_s),), dtype=bool)
+    boolean_filter_array = np.zeros((len(temporal_test_data['y']),), dtype=bool)
 
     for building_id in test_building_samples:
         boolean_filter_array = boolean_filter_array | (
-            temporal_X_s[:, 0] == building_id
+            temporal_test_data['x_s'][:, 0] == building_id
         )
 
     inverted_boolean_filter_array = np.invert(boolean_filter_array)
 
-    ### Spatio-temporal ###
-    spatemp_X_t_ord_1D = temporal_X_t_ord_1D[boolean_filter_array]
-    spatemp_X_t = temporal_X_t[boolean_filter_array]
-    spatemp_X_s = temporal_X_s[boolean_filter_array]
-    spatemp_X_st = temporal_X_st[boolean_filter_array]
-    spatemp_Y = temporal_Y[boolean_filter_array]
-    spatemp_X_s1 = temporal_X_s1[boolean_filter_array]
-
-    spatemp_test_data = {
-        'X_t_ord_1D': spatemp_X_t_ord_1D,
-        'X_t': spatemp_X_t, 
-        'X_s': spatemp_X_s, 
-        'X_s1': spatemp_X_s1, 
-        'X_st': spatemp_X_st, 
-        'Y': spatemp_Y,
-        'n_datapoints': len(spatemp_X_t)
-    }
-    (
-        spatemp_X_t_ord_1D,
-        spatemp_X_t, 
-        spatemp_X_s, 
-        spatemp_X_s1, 
-        spatemp_X_st, 
-        spatemp_Y
-    ) = 0, 0, 0, 0, 0, 0
-
-    ### Temporal ###
-    temporal_X_t_ord_1D = temporal_X_t_ord_1D[inverted_boolean_filter_array]
-    temporal_X_t = temporal_X_t[inverted_boolean_filter_array]
-    temporal_X_s = temporal_X_s[inverted_boolean_filter_array]
-    temporal_X_st = temporal_X_st[inverted_boolean_filter_array]
-    temporal_Y = temporal_Y[inverted_boolean_filter_array]
-    temporal_X_s1 = temporal_X_s1[inverted_boolean_filter_array]
-
-    temporal_test_data = {
-        'X_t_ord_1D': temporal_X_t_ord_1D,
-        'X_t': temporal_X_t, 
-        'X_s': temporal_X_s, 
-        'X_s1': temporal_X_s1, 
-        'X_st': temporal_X_st, 
-        'Y': temporal_Y,
-        'n_datapoints': len(temporal_X_t)
-    }
-    (
-        temporal_X_t_ord_1D,
-        temporal_X_t, 
-        temporal_X_s, 
-        temporal_X_s1, 
-        temporal_X_st, 
-        temporal_Y 
-    ) = 0, 0, 0, 0, 0, 0
+    ### Spatio-temporal and temporal ###
+    spatemp_test_data = {}
+    for key in temporal_test_data:
+        spatemp_test_data[key] = temporal_test_data[key][boolean_filter_array]
+        temporal_test_data[key] = temporal_test_data[key][inverted_boolean_filter_array]
 
 
     ###
@@ -1048,86 +911,34 @@ def split_avail_cand(
     ###
 
     ### create the filtering array ###
-    boolean_filter_array = np.zeros((len(spatial_X_s),), dtype=bool)
+    boolean_filter_array = np.zeros((len(spatial_test_data['y']),), dtype=bool)
 
     for building_id in test_building_samples:
         boolean_filter_array = (
-            boolean_filter_array | (spatial_X_s[:, 0] == building_id)
+            boolean_filter_array | (spatial_test_data['x_s'][:, 0] == building_id)
         )
 
     inverted_boolean_filter_array = np.invert(boolean_filter_array)
 
     ### Train-validation split ###
-    train_val_X_t_ord_1D = spatial_X_t_ord_1D[inverted_boolean_filter_array]
-    train_val_X_t = spatial_X_t[inverted_boolean_filter_array]
-    train_val_X_s = spatial_X_s[inverted_boolean_filter_array]
-    train_val_X_st = spatial_X_st[inverted_boolean_filter_array]
-    train_val_Y = spatial_Y[inverted_boolean_filter_array]
-    train_val_X_s1 = spatial_X_s1[inverted_boolean_filter_array]
-
-    ### Spatial ###
-    spatial_X_t_ord_1D = spatial_X_t_ord_1D[boolean_filter_array]
-    spatial_X_t = spatial_X_t[boolean_filter_array]
-    spatial_X_s = spatial_X_s[boolean_filter_array]
-    spatial_X_st = spatial_X_st[boolean_filter_array]
-    spatial_Y = spatial_Y[boolean_filter_array]
-    spatial_X_s1 = spatial_X_s1[boolean_filter_array]
-
-    spatial_test_data = {
-        'X_t_ord_1D': spatial_X_t_ord_1D,
-        'X_t': spatial_X_t, 
-        'X_s': spatial_X_s, 
-        'X_s1': spatial_X_s1, 
-        'X_st': spatial_X_st, 
-        'Y': spatial_Y,
-        'n_datapoints': len(spatial_X_t)
-    }
-    (
-        spatial_X_t_ord_1D,
-        spatial_X_t, 
-        spatial_X_s, 
-        spatial_X_s1, 
-        spatial_X_st, 
-        spatial_Y 
-    ) = 0, 0, 0, 0, 0, 0
-
-
-
-    train_val_data = {
-        'X_t_ord_1D': train_val_X_t_ord_1D,
-        'X_t': train_val_X_t, 
-        'X_s': train_val_X_s, 
-        'X_s1': train_val_X_s1, 
-        'X_st': train_val_X_st, 
-        'Y': train_val_Y,
-        'n_datapoints': len(train_val_X_t)
-    }
-    (
-        train_val_X_t_ord_1D,
-        train_val_X_t, 
-        train_val_X_s, 
-        train_val_X_s1, 
-        train_val_X_st, 
-        train_val_Y
-    ) = 0, 0, 0, 0, 0, 0
-
+    train_val_data = {}
+    for key in spatial_test_data:
+        train_val_data[key] = spatial_test_data[key][inverted_boolean_filter_array]
+        spatial_test_data[key] = spatial_test_data[key][boolean_filter_array]
+   
 
     def f_randomize(dataset):
     
-        """
+        """ Randomizes all entries of the passed dataset dictionary.
         """
         # create random array
-        random_array = np.arange(len(dataset['X_t']))
+        random_array = np.arange(len(dataset['x_t']))
 
         # shuffle random array
         np.random.shuffle(random_array)
 
-        dataset['X_t_ord_1D'] = dataset['X_t_ord_1D'][random_array]
-        dataset['X_t'] = dataset['X_t'][random_array]
-        dataset['X_s'] = dataset['X_s'][random_array]
-        dataset['X_s1'] = dataset['X_s1'][random_array]
-        dataset['X_st'] = dataset['X_st'][random_array]
-        dataset['Y'] = dataset['Y'][random_array]
+        for key in dataset:
+            dataset[key] = dataset[key][random_array]
 
         return dataset
         
@@ -1137,15 +948,15 @@ def split_avail_cand(
     temporal_test_data = f_randomize(temporal_test_data)
     spatemp_test_data = f_randomize(spatemp_test_data)
      
-    if not silent:
+    if not raw_data['silent']:
 
         n_test_datapoints = (
-            spatial_test_data['n_datapoints']
-            + temporal_test_data['n_datapoints']
-            + spatemp_test_data['n_datapoints']
+            len(spatial_test_data['y'])
+            + len(temporal_test_data['y'])
+            + len(spatemp_test_data['y'])
         )
         n_total_datapoints = (
-            train_val_data['n_datapoints']
+            len(train_val_data['y'])
             + n_test_datapoints
         )
 
@@ -1158,8 +969,8 @@ def split_avail_cand(
 
         print(
             'Available data:   {} ({:.0%})'.format(
-                train_val_data['n_datapoints'],
-                train_val_data['n_datapoints'] / n_total_datapoints,
+                len(train_val_data['y']),
+                len(train_val_data['y']) / n_total_datapoints,
             )
         )
         print(
@@ -1171,23 +982,24 @@ def split_avail_cand(
 
         print(
             'Spatial testing data:         {} ({:.0%})'.format(
-                spatial_test_data['n_datapoints'],
-                spatial_test_data['n_datapoints'] / n_test_datapoints,
+                len(spatial_test_data['y']),
+                len(spatial_test_data['y']) / n_test_datapoints,
             )
         )
         print(
             'Temporal testing data:        {} ({:.0%})'.format(
-                temporal_test_data['n_datapoints'],
-                temporal_test_data['n_datapoints'] / n_test_datapoints,
+                len(temporal_test_data['y']),
+                len(temporal_test_data['y']) / n_test_datapoints,
             )
         )
         print(
             'Spatio-temporal testing data: {} ({:.0%})'.format(
-                spatemp_test_data['n_datapoints'],
-                spatemp_test_data['n_datapoints'] / n_test_datapoints,
+                len(spatemp_test_data['y']),
+                len(spatemp_test_data['y']) / n_test_datapoints,
             )
         )
 
+    
     return (
         train_val_data,
         spatial_test_data,
@@ -1195,24 +1007,22 @@ def split_avail_cand(
         spatemp_test_data,
     )
 
-
   
 def standardize_features(
     raw_data, 
     dataset, 
     reference_data, 
-    silent=True
 ):
 
     """ Converts the population of each feature into a standard score using mean 
-    and std deviations. For X_st, the past time steps of each meteorological 
-    condition are transformed separately. For X_s1, the histogram or average 
+    and std deviations. For x_st, the past time steps of each meteorological 
+    condition are transformed separately. For x_s1, the histogram or average 
     values of each channel are transformed separately.
     """
 
     if raw_data['standardization']:
 
-        if not silent:
+        if not raw_data['silent']:
 
             # tell us what we do
             print('Standardizing data')
@@ -1220,26 +1030,26 @@ def standardize_features(
         # get StandardScaler from the sklearn preprocessing package
         standard_scaler = preprocessing.StandardScaler()
 
-        # standardize X_t in the case that it is not OHE
+        # standardize x_t in the case that it is not OHE
         if raw_data['time_encoding'] != 'OHE':
 
-            standard_scaler.fit(reference_data['X_t'])
-            dataset['X_t'] = standard_scaler.transform(dataset['X_t'])
+            standard_scaler.fit(reference_data['x_t'])
+            dataset['x_t'] = standard_scaler.transform(dataset['x_t'])
 
-        # standardize X_st
+        # standardize x_st
         for i in range(len(raw_data['meteo_types'])):
 
-            standard_scaler.fit(reference_data['X_st'][:, :, i])
-            dataset['X_st'][:, :, i] = standard_scaler.transform(
-                dataset['X_st'][:, :, i]
+            standard_scaler.fit(reference_data['x_st'][:, :, i])
+            dataset['x_st'][:, :, i] = standard_scaler.transform(
+                dataset['x_st'][:, :, i]
             )
 
-        # standardize X_s1
+        # standardize x_s1
         for channel in range(raw_data['n_channels']):
 
-            standard_scaler.fit(reference_data['X_s1'][:, :, channel])
-            dataset['X_s1'][:, :, channel] = standard_scaler.transform(
-                dataset['X_s1'][:, :, channel]
+            standard_scaler.fit(reference_data['x_s1'][:, :, channel])
+            dataset['x_s1'][:, :, channel] = standard_scaler.transform(
+                dataset['x_s1'][:, :, channel]
             )
 
     return dataset
