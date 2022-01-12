@@ -119,7 +119,6 @@ it contains and results it can generate.
     </td>
   </tr>
   
-  
   <tr> 
     <td>
       <b>batch_index_list</b>: <br /> list of integers
@@ -165,7 +164,7 @@ it contains and results it can generate.
 
 ### Methods:
 
-** ADL_model.initialize()**
+**ADL_model.initialize()**
 <table>
 
   <tr>
@@ -177,7 +176,7 @@ it contains and results it can generate.
       <b>y (required)</b>: <br /> numpy array
     </td>
     <td>
-      Labels.
+      Array or matrix of labels.
     </td>
   </tr>
   
@@ -186,9 +185,169 @@ it contains and results it can generate.
       <b>x_t (=None)</b>: <br /> numpy array
     </td>
     <td>
-      Time-variant features.
+      Array or matrix of time-variant features.
     </td>
-  </tr> 
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_s (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-variant features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>x_st (=None)</b>: <br /> numpy array
+    </td>
+    <td>
+      Array or matrix of space-time-variant features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>encoder_layers (=1)</b>: <br /> int
+    </td>
+    <td>
+      Choose how many neural network layers you want to use for encoding features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>network_layers (=1)</b>: <br /> int
+    </td>
+    <td>
+      Choose how many layers you want to use after encoders. This is your network 
+      depth.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>encoding_nodes_x_t (=100)</b>: <br /> int
+    </td>
+    <td>
+      Choose the dimension of the encoding outcome of temporal features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>encoding_nodes_x_s (=100)</b>: <br /> int
+    </td>
+    <td>
+      Choose the dimension of the encoding outcome of spatial features.
+    </td>
+  </tr>
+    
+  <tr> 
+    <td>
+      <b>encoding_nodes_x_st (=100)</b>: <br /> int
+    </td>
+    <td>
+      Choose the dimension of the encoding outcome of spatio-temporal features.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>encoding_nodes_joint (=100)</b>: <br /> int
+    </td>
+    <td>
+      Choose the dimension of the encoding outcome of entire concatenated 
+      feature vector.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>nodes_per_layer_dense (=1000)</b>: <br /> int
+    </td>
+    <td>
+      Choose how many nodes per dense layer you want to use. This determines the 
+      width of your network.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>filters_per_layer_cnn (=16)</b>: <br /> int
+    </td>
+    <td>
+      Choose how many filtes per convolutional layer you want to use.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>states_per_layer_rnn (=200)</b>: <br /> int
+    </td>
+    <td>
+      Choose how many states per recurrent layer you want to use.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>activation_encoding (='relu')</b>: <br /> string
+    </td>
+    <td>
+      Choose which activation function to use on last encoding layer. Choose from 
+      None, 'relu', 'tanh', 'selu', 'elu', 'exponential'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>activation_dense (='relu')</b>: <br /> string
+    </td>
+    <td>
+      Choose which activation function to use in each dense layer. Choose from
+      None, 'relu', 'tanh', 'selu', 'elu', 'exponential'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>activation_cnn (='relu')</b>: <br /> string
+    </td>
+    <td>
+      Choose which activation function to use in each convolutional layer. Choose
+      from None, 'relu', 'tanh', 'selu', 'elu', 'exponential'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>activation_rnn (='relu')</b>: <br /> string
+    </td>
+    <td>
+      Choose which activation function to use in each recurrent layer. Choose
+      from None, 'relu', 'tanh', 'selu', 'elu', 'exponential'.
+    </td>
+  </tr>
+  
+</table>
+
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Results </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>models</b>: <br /> list of Tensorflow models
+    </td>
+    <td>
+      List of computational graphs that compound our active deep learning embedding
+      network.
+    </td>
+  </tr>
     
 </table>
 
