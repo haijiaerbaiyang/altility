@@ -111,10 +111,22 @@ it contains and results it can generate.
   
   <tr> 
     <td>
+      <b>models</b>: <br /> list of Tensorflow models
+    </td>
+    <td>
+      List of computational graphs that compound our active deep learning embedding
+      network. Created when calling <b>ADL_model.initialize()</b>.
+    </td>
+  </tr>
+  
+  
+  <tr> 
+    <td>
       <b>batch_index_list</b>: <br /> list of integers
     </td>
     <td>
       List of indices for most informative data points suggested to collect.
+      Created when calling <b>ADL_model.collect()</b>.
     </td>
   </tr>
   
@@ -124,7 +136,7 @@ it contains and results it can generate.
     </td>
     <td>
       List of information scores for most informative data points suggested to 
-      collect.
+      collect. Created when calling <b>ADL_model.collect()</b>.
     </td>
   </tr>
     
