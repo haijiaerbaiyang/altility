@@ -323,11 +323,147 @@ it contains and results it can generate.
   
   <tr> 
     <td>
-      <b>activation_rnn (='relu')</b>: <br /> string
+      <b>activation_rnn (='tanh')</b>: <br /> string
     </td>
     <td>
       Choose which activation function to use in each recurrent layer. Choose
       from None, 'relu', 'tanh', 'selu', 'elu', 'exponential'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>layer_type_x_st (='CNN')</b>: <br /> string
+    </td>
+    <td>
+      Choose which layers to use for X_st inputs. Choose one from 'ANN', 'CNN', 
+      'LSTM'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>initialization_method (='glorot_normal')</b>: <br /> string
+    </td>
+    <td>
+      Choose how to initiliaze weights for Conv1D, Conv2D and Dense layers. 
+      Choose from 'glorot_normal'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>initialization_method_rnn (='orthogonal')</b>: <br /> string
+    </td>
+    <td>
+      Choose how to initiliaze weights for LSTM layers. Choose from 'orthogonal'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>regularizer (='l1_l2')</b>: <br /> string
+    </td>
+    <td>
+      Choose how to regularize weights. Choose from None, 'l1', 'l2', 'l1_l2'.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>batch_normalization (=False)</b>: <br /> bool
+    </td>
+    <td>
+      Choose whether or not to use batch normalization on each layer in your NN.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>train_split (=0.7)</b>: <br /> float 
+    </td>
+    <td>
+      Choose on the splitting ratio between training and validation datasets. 
+      Choose a value between 0 and 1.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>split_intervals (=0.05)</b>: <br /> float 
+    </td>
+    <td>
+     Decide in which frequency to do train-validation split. 1 equals one datapoint 
+     per bin, 0.5 equals two datapoints per bin.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>random_seed (=None)</b>: <br /> float 
+    </td>
+    <td>
+     Provide a seed for reproducibility of your experiments. This is then used
+     when initializing weights of deep learning model, when choosing random
+     data sequences during training and anywhere, where stochastic processes play
+     a role.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>epochs (=30)</b>: <br /> int 
+    </td>
+    <td>
+     Choose for how many epochs you want to train your model.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>patience (=10)</b>: <br /> int 
+    </td>
+    <td>
+     Choose how many epochs to have patience on not increasing validation loss 
+     during training before early stopping.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>batch_size (=16)</b>: <br /> int 
+    </td>
+    <td>
+     Choose how large your data batch size should be during training. Choose a 
+     value to the power of 2.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>monitor (='val_loss')</b>: <br /> string 
+    </td>
+    <td>
+     Choose which value to monitor for early stopping. Choose from 'val_loss' and
+     'train_loss'.
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>silent (=True)</b>: <br /> bool
+    <td>
+      Decide whether or not to print out progress.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>plot (=False)</b>: <br /> bool
+    <td>
+      Decide whether or not to visualize process.
+    </td>
     </td>
   </tr>
   
