@@ -309,15 +309,6 @@ in **load_forecasting.py** with the following parameter and return values:
   
   <tr>
     <td>
-      <b>train_split (=0.3)</b>: <br /> float
-    <td>
-      Decides on the splitting ratio between training and validation datasets.
-    </td>
-    </td>
-  </tr>
-  
-  <tr>
-    <td>
       <b>test_split (=0.7)</b>: <br /> float
     <td>
       Decides how many buildings and how much of the time period to separate for
