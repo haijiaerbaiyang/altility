@@ -139,6 +139,26 @@ it contains and results it can generate.
       collect. Created when calling <b>ADL_model.collect()</b>.
     </td>
   </tr>
+  
+  <tr> 
+    <td>
+      <b>predictions</b>: <br /> list of floats
+    </td>
+    <td>
+      List of predictions made for passed features. Created when calling 
+      <b>ADL_model.predict()</b>.
+    </td>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>testing_loss</b>: <br /> float
+    </td>
+    <td>
+      Testing loss score calculated from true vs. predicted labels. Only calculated
+      if true labels <b>'y_pred'</b> are provided when calling <b>ADL_model.predict()</b>.
+    </td>
+  </tr>
     
 </table>
 
