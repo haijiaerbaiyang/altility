@@ -1145,7 +1145,7 @@ class ADL_model:
         plot=False,
     ):
 
-        """ Predict unqueried candidates.
+        """ Predict labels for unqueried candidate data.
         """
         
         def plot_true_vs_prediction(test_data_Y, predictions):
