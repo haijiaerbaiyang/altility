@@ -1,7 +1,7 @@
 The name altility stands for 'actively learning utility', and was first developed
 to help electric utilities in the process of placing new smart meters in space and 
 collecting their data at different times. This package, however, can now be used
-for any type of spatio-temporal prediction task.
+and be further developed for any type of spatio-temporal prediction task.
 
 
 ### Installation:
