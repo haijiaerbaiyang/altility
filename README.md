@@ -395,7 +395,121 @@ MIT license we provide for our package here. To prepare the data for usage with
 altility, use the **prep_travel_forecasting_data()** function provided in 
 **travel_forecasting.py** with the following parameters and return values.
 
+<table>
 
+  <tr>
+    <th scope='row' colspan='2'> Parameters </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>path_to_data (='data/public/travel time forecasting/')</b>: <br /> string
+    </td>
+    <td>
+      The path to where data is stored. This is 'data/public/travel time forecasting/'
+      in our original repository.
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>dataset_name (='Uber movement')</b>: <br /> string
+    <td>
+      This is currently the only dataset source we provide for travel time data.
+      An alternative source is the Google Maps API.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>city_name (='Amsterdam')</b>: <br /> string
+    <td>
+      Choose a city for which you want to predict missing travel time data between
+      their single city zones. All available cities can be seen under the path
+      'data/public/travel time forecasting/Uber movement/'.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>test_split (=0.7)</b>: <br /> float
+    <td>
+      Decides how many data to separate for creating the candidate data pool.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>time_encoding (='ORD')</b>: <br /> string
+    <td>
+      Decide how to encode time stamp data. Choose one of 'ORD' for ordinal encoding
+      or 'OHE' for one-hot encoding.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>normalization (=True)</b>: <br /> bool
+    <td>
+      Decide whether or not to normalize features.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>standardization (=True)</b>: <br /> bool
+    <td>
+      Decide whether to standardize features to zero mean and unit variance.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>silent (=True)</b>: <br /> bool
+    <td>
+      Decide whether or not to print out progress of data processing.
+    </td>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+      <b>plot (=False)</b>: <br /> bool
+    <td>
+      Decide whether or not to visualize examples of processed data.
+    </td>
+    </td>
+  </tr>
+    
+</table>
+
+
+<table>
+
+  <tr>
+    <th scope='row' colspan='2'> Returns </th>
+  </tr>
+  
+  <tr> 
+    <td>
+      <b>datasets</b>: <br /> dict
+    </td>
+    <td>
+      A dictionary containing available and candidate data, that are stored with
+      the keys <b>'avail_data'</b> and <b>'cand_data'</b>. These are dictionaries 
+      themselves, and store variables under keys <b>'x_t'</b>, <b>'x_s'</b> and 
+      <b>'y'</b>. These stand for only time-variant features <b>'x_t'</b>, only 
+      space-variant features <b>'x_s'</b> and labels <b>'y'</b>.
+    </td>
+  </tr>
+    
+</table>
 
 
 ### Examples:
@@ -415,14 +529,14 @@ datasets = load_forecasting.prep_load_forecasting_data(
 ### Get features and labels for available data
 y = datasets['avail_data']['y']
 x_t = datasets['avail_data']['x_t']
-x_s = datasets['avail_data']['x_s1']
+x_s = datasets['avail_data']['x_s']
 x_st = datasets['avail_data']['x_st']
 
 
 ### Get features and labels for candidate data from spatio-temporal test set
 y_cand = datasets['cand_data']['y']
 x_t_cand = datasets['cand_data']['x_t']
-x_s_cand = datasets['cand_data']['x_s1']
+x_s_cand = datasets['cand_data']['x_s']
 x_st_cand = datasets['cand_data']['x_st']
 
 
@@ -451,10 +565,13 @@ ADL_model.collect(
 )
 
 
-### Extract selected data from candidate data pool for training
+### Create one array for picked and one for unpicked data to be predicted
 picked_array = np.zeros([len(y_cand),], dtype=bool)
 picked_array[ADL_model.batch_index_list] = True
+pred_array = np.invert(picked_array)
 
+
+### Extract selected data from candidate data pool for training
 y_picked = y_cand[picked_array]
 x_t_picked = x_t_cand[picked_array]
 x_s_picked = x_s_cand[picked_array]
@@ -473,8 +590,6 @@ ADL_model.train(
 
 
 ### Extract not selected data from candidate data pool for testing/predicting
-pred_array = np.invert(picked_array)
-
 y_pred = y_cand[pred_array]
 x_t_pred = x_t_cand[pred_array]
 x_s_pred = x_s_cand[pred_array]
@@ -482,7 +597,7 @@ x_st_pred = x_st_cand[pred_array]
 
 
 ### Predict on remaining data
-ADL_model.test_model(
+ADL_model.predict(
     y_pred,
     x_t_pred,
     x_s_pred,
@@ -546,10 +661,13 @@ ADL_model.collect(
 )
 
 
-### Extract selected data from candidate data pool for training
+### Create one array for picked and one for unpicked data to be predicted
 picked_array = np.zeros([len(y_cand),], dtype=bool)
 picked_array[ADL_model.batch_index_list] = True
+pred_array = np.invert(picked_array)
 
+
+### Extract selected data from candidate data pool for training
 y_picked = y_cand[picked_array]
 x_t_picked = x_t_cand[picked_array]
 x_s_picked = x_s_cand[picked_array]
@@ -566,15 +684,13 @@ ADL_model.train(
 
 
 ### Extract not selected data from candidate data pool for testing/predicting
-pred_array = np.invert(picked_array)
-
 y_pred = y_cand[pred_array]
 x_t_pred = x_t_cand[pred_array]
 x_s_pred = x_s_cand[pred_array] 
 
 
 ### Predict on remaining data
-ADL_model.test_model(
+ADL_model.predict(
     y_pred,
     x_t_pred,
     x_s_pred,
