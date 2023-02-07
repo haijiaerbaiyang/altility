@@ -4,7 +4,7 @@ collecting their data at different times. This package, however, can now be used
 and be further developed for any type of spatio-temporal prediction task.
 
 
-### Installation:
+### Getting started:
 ```
 pip install altility
 ```
